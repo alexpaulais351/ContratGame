@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  name           String
+  password       String
+  role           String         @default("user") // "user" | "admin"
+  logoSociete    String?        @db.Text
+  nomSociete     String?
+  adresseSociete String?
+  telSociete     String?
+  faxSociete     String?
+  certifications String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  memberships    ProjetMember[]
+}
+
+model Projet {
+  id               String                 @id @default(cuid())
+  name             String
+  description      String?
+  moaNom           String?
+  moaPrenom        String?
+  moaAdresse       String?
+  numeroAffaire    String?
+  numeroCommande   String?
+  numeroOTP        String?
+  adresseChantier  String?
+  dateDebut        DateTime?
+  dateFin          DateTime?
+  modulesMasques   Json                   @default("[]")
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  members          ProjetMember[]
+  lignesDE         LigneDE[]
+  coTraitants      CoTraitant[]
+  situations       Situation[]
+  prixNouveaux     PrixNouveau[]
+  sousTraitants    SousTraitant[]
+  courriers        CourrierChantier[]
+  categories       CategorieEvenement[]
+  evenements       EvenementChantier[]
+  lignesFicheEcart LigneFicheEcart[]
+  matrices         MatriceDecisionnelle[]
+}
+
+model ProjetMember {
+  id       String @id @default(cuid())
+  userId   String
+  projetId String
+  role     String @default("member") // "owner" | "member"
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projet   Projet @relation(fields: [projetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projetId])
+}
+
+model LigneDE {
+  id              String           @id @default(cuid())
+  projetId        String
+  code            String           @default("")
+  designation     String           @default("")
+  unite           String           @default("")
+  quantite        Float            @default(0)
+  prixUnitaire    Float            @default(0)
+  estChapitre     Boolean          @default(false)
+  repartition     Json?
+  ordre           Int              @default(0)
+  projet          Projet           @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  lignesSituation LigneSituation[]
+
+  @@index([projetId, ordre])
+}
+
+model CoTraitant {
+  id            String  @id @default(cuid())
+  projetId      String
+  nom           String
+  estMandataire Boolean @default(false)
+  ordre         Int     @default(0)
+  projet        Projet  @relation(fields: [projetId], references: [id], onDelete: Cascade)
+}
+
+model Situation {
+  id          String           @id @default(cuid())
+  projetId    String
+  numero      Int
+  libelle     String           @default("")
+  annee       Int
+  mois        Int
+  statut      String           @default("brouillon") // "brouillon" | "validee"
+  commentaire String?
+  createdAt   DateTime         @default(now())
+  projet      Projet           @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  lignes      LigneSituation[]
+
+  @@unique([projetId, numero])
+}
+
+model LigneSituation {
+  id           String    @id @default(cuid())
+  situationId  String
+  ligneDEId    String
+  quantite     Float     @default(0)
+  prixUnitaire Float     @default(0)
+  situation    Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  ligneDE      LigneDE   @relation(fields: [ligneDEId], references: [id], onDelete: Cascade)
+
+  @@unique([situationId, ligneDEId])
+}
+
+model PrixNouveau {
+  id                   String    @id @default(cuid())
+  projetId             String
+  numero               String    @default("")
+  intitule             String    @default("")
+  dateDevis            DateTime?
+  montantPresente      Float     @default(0)
+  montantAccepte       Float?
+  debourseReel         Float?
+  numeroOS             String?
+  dateOS               DateTime?
+  delaiSupplementaire  String?
+  potentielAcceptation Int       @default(50)
+  statut               String    @default("a_venir") // a_venir | en_cours | accepte | refuse
+  commentaire          String?
+  ordre                Int       @default(0)
+  projet               Projet    @relation(fields: [projetId], references: [id], onDelete: Cascade)
+}
+
+model SousTraitant {
+  id             String                    @id @default(cuid())
+  projetId       String
+  nom            String
+  contact        String?
+  telephone      String?
+  email          String?
+  paiementDirect Boolean                   @default(false)
+  montantMarche  Float                     @default(0)
+  montantAS      Float                     @default(0)
+  commentaire    String?
+  ordre          Int                       @default(0)
+  projet         Projet                    @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  avenants       AvenantSousTraitant[]
+  facturations   FacturationSousTraitant[]
+}
+
+model AvenantSousTraitant {
+  id             String       @id @default(cuid())
+  sousTraitantId String
+  numero         String       @default("")
+  libelle        String       @default("")
+  montant        Float        @default(0)
+  date           DateTime?
+  sousTraitant   SousTraitant @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
+}
+
+model FacturationSousTraitant {
+  id             String       @id @default(cuid())
+  sousTraitantId String
+  annee          Int
+  mois           Int
+  montant        Float        @default(0)
+  commentaire    String?
+  sousTraitant   SousTraitant @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
+
+  @@unique([sousTraitantId, annee, mois])
+}
+
+model CourrierChantier {
+  id                 String              @id @default(cuid())
+  projetId           String
+  reference          String              @default("")
+  objet              String              @default("")
+  type               String              @default("autre")
+  dateEnvoi          DateTime?
+  destinataire       String              @default("")
+  expediteur         String              @default("")
+  corps              String              @default("") @db.Text
+  statut             String              @default("brouillon") // brouillon | envoye
+  lieu               String?
+  modeEnvoi          String?
+  copies             String?
+  signataireNom      String?
+  signataireFonction String?
+  createdAt          DateTime            @default(now())
+  projet             Projet              @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  evenements         EvenementChantier[]
+}
+
+model CategorieEvenement {
+  id            String              @id @default(cuid())
+  projetId      String
+  nom           String
+  couleurBg     String
+  couleurBorder String
+  couleurText   String
+  couleurPoint  String
+  estSysteme    Boolean             @default(false)
+  projet        Projet              @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  evenements    EvenementChantier[]
+
+  @@unique([projetId, nom])
+}
+
+model EvenementChantier {
+  id            String              @id @default(cuid())
+  projetId      String
+  date          DateTime
+  titre         String
+  description   String?             @db.Text
+  categorie     String              @default("")
+  categorieId   String?
+  afficherFrise Boolean             @default(true)
+  source        String?
+  courrierId    String?
+  createdAt     DateTime            @default(now())
+  projet        Projet              @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  categorieRel  CategorieEvenement? @relation(fields: [categorieId], references: [id], onDelete: SetNull)
+  courrier      CourrierChantier?   @relation(fields: [courrierId], references: [id], onDelete: SetNull)
+  fichiers      FichierEvenement[]
+  lignesEcart   LigneFicheEcart[]
+}
+
+model FichierEvenement {
+  id          String            @id @default(cuid())
+  evenementId String
+  nom         String
+  type        String
+  contenu     String            @db.Text
+  taille      Int
+  evenement   EvenementChantier @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+}
+
+model LigneFicheEcart {
+  id               String             @id @default(cuid())
+  projetId         String
+  evenementId      String?
+  etude            String             @default("")
+  prevuDCE         String             @default("")
+  phaseTransitoire String             @default("")
+  exe              String             @default("")
+  impacts          String             @default("")
+  delaisImpactes   String             @default("")
+  coutImpactes     String             @default("")
+  ordre            Int                @default(0)
+  chapitre         String?
+  estChapitre      Boolean            @default(false)
+  projet           Projet             @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  evenement        EvenementChantier? @relation(fields: [evenementId], references: [id], onDelete: SetNull)
+}
+
+model MatriceDecisionnelle {
+  id              String                @id @default(cuid())
+  projetId        String
+  titre           String
+  acheteur        String?
+  site            String?
+  familleAchats   String?
+  budgetTheorique Float?
+  devise          String                @default("EUR")
+  seuilGo         Float                 @default(60)
+  statut          String                @default("brouillon")
+  bidComp         Json                  @default("{}")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  projet          Projet                @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  fournisseurs    FournisseurCandidat[]
+  criteres        Critere[]
+}
+
+model FournisseurCandidat {
+  id              String               @id @default(cuid())
+  matriceId       String
+  nom             String
+  rang            Int                  @default(0)
+  refOffre        String?
+  dateOffre       DateTime?
+  paysFabrication String?
+  incoterm        String?
+  montantOffre    Float?
+  decision        String               @default("en_attente") // go | no_go | en_attente
+  couleurDecision String               @default("#F2AB1B")
+  matrice         MatriceDecisionnelle @relation(fields: [matriceId], references: [id], onDelete: Cascade)
+  notations       NotationCritere[]
+}
+
+model Critere {
+  id          String               @id @default(cuid())
+  matriceId   String
+  famille     String
+  libelle     String
+  coefficient Float                @default(1)
+  type        String               @default("note_1_3") // note_1_3 | texte | booleen | montant
+  ordre       Int                  @default(0)
+  matrice     MatriceDecisionnelle @relation(fields: [matriceId], references: [id], onDelete: Cascade)
+  notations   NotationCritere[]
+}
+
+model NotationCritere {
+  id                         String              @id @default(cuid())
+  critereId                  String
+  fournisseurId              String
+  valeurTexte                String?
+  note                       Int?
+  valeurBool                 Boolean?
+  commentaire                String?
+  estNonConformiteMajeure    Boolean             @default(false)
+  estNonConformiteNegociable Boolean             @default(false)
+  critere                    Critere             @relation(fields: [critereId], references: [id], onDelete: Cascade)
+  fournisseur                FournisseurCandidat @relation(fields: [fournisseurId], references: [id], onDelete: Cascade)
+
+  @@unique([critereId, fournisseurId])
+}
