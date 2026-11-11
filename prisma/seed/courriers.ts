@@ -26,7 +26,7 @@ export async function seedCourriers(prisma: PrismaClient, projetId: string) {
       signataireFonction: 'Directeur de projet',
       corps: `Madame, Monsieur,
 
-Dans le cadre du chantier ${nom} (Marché n° ${projet.numeroCommande ?? '………'} – Affaire ${projet.numeroAffaire ?? '………'}), nous avons pris connaissance de votre ordre de service daté du 2 mars 2026 relatif à la modification du phasage des travaux.
+Dans le cadre de l’opération « ${nom} » (Marché n° ${projet.numeroCommande ?? '………'} – Affaire ${projet.numeroAffaire ?? '………'}), nous avons pris connaissance de votre ordre de service daté du 2 mars 2026 relatif à la modification du phasage des travaux.
 
 Après examen, nous formulons les réserves suivantes :
 

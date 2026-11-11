@@ -5,7 +5,7 @@ export async function seedSituations(prisma: PrismaClient, projetId: string) {
   await prisma.situation.deleteMany({ where: { projetId } })
   const lignes = await prisma.ligneDE.findMany({ where: { projetId, estChapitre: false }, orderBy: { ordre: 'asc' } })
   const sit = await prisma.situation.create({
-    data: { projetId, numero: 1, libelle: 'Situation n°1 — Mars 2026', annee: 2026, mois: 3, statut: 'validee' },
+    data: { projetId, numero: 1, libelle: 'Travaux de mars', annee: 2026, mois: 3, statut: 'validee' },
   })
   const taux = [0.5, 0.25, 0.8, 0.1, 1]
   const data = lignes

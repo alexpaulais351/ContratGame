@@ -23,7 +23,7 @@ export type STSuivi = {
 }
 
 const cle = (id: string, mois: number) => `${id}:${mois}`
-const fmtSaisie = (n: number) => (n ? String(n).replace('.', ',') : '')
+const fmtSaisie = (n: number) => (n ? formatNombreFR(n) : '')
 
 export function SuiviSousTraitants({ projetId, nomProjet, annee, annees, sousTraitants }: {
   projetId: string; nomProjet: string; annee: number; annees: number[]; sousTraitants: STSuivi[]

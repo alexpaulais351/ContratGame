@@ -62,7 +62,7 @@ export const MODELES_COURRIERS: ModeleCourrier[] = [
     modeEnvoi: 'lrar',
     corps: `Madame, Monsieur,
 
-Dans le cadre du chantier {{projet}} ({{REF}}), nous avons pris connaissance de votre document daté du ……… relatif à ………
+Dans le cadre de l’opération « {{projet}} » ({{REF}}), nous avons pris connaissance de votre document daté du ……… relatif à ………
 
 Après examen, nous sommes amenés à formuler les réserves suivantes :
 
@@ -82,7 +82,7 @@ Nous vous demandons de bien vouloir prendre en compte ces réserves et de nous f
     modeEnvoi: 'lrar',
     corps: `Madame, Monsieur,
 
-Par la présente, et en référence au {{REF}} relatif au chantier {{projet}} situé {{adresseChantier}}, nous constatons que vous n’avez pas satisfait à l’obligation suivante :
+Par la présente, et en référence au {{REF}} relatif à l’opération « {{projet}} » situé {{adresseChantier}}, nous constatons que vous n’avez pas satisfait à l’obligation suivante :
 
 ………
 
@@ -102,7 +102,7 @@ Le présent courrier vaut mise en demeure au sens des stipulations contractuelle
     modeEnvoi: 'lrar',
     corps: `Madame, Monsieur,
 
-Dans le cadre du chantier {{projet}} ({{REF}}), nous vous informons que l’exécution des travaux est impactée par les événements suivants :
+Dans le cadre de l’opération « {{projet}} » ({{REF}}), nous vous informons que l’exécution des travaux est impactée par les événements suivants :
 
 – ………
 – ………
@@ -121,7 +121,7 @@ Nous restons à votre disposition pour vous présenter l’analyse détaillée d
     modeEnvoi: 'mail',
     corps: `Madame, Monsieur,
 
-Veuillez trouver ci-joint, pour le chantier {{projet}} ({{REF}}), les documents suivants :
+Veuillez trouver ci-joint, pour l’opération « {{projet}} » ({{REF}}), les documents suivants :
 
 – ………  (indice ……)
 – ………  (indice ……)
@@ -139,7 +139,7 @@ Nous vous remercions de bien vouloir nous retourner un exemplaire visé dans les
     modeEnvoi: 'lrar',
     corps: `Madame, Monsieur,
 
-Dans le cadre du chantier {{projet}} ({{REF}}), des prestations non prévues au marché ont été demandées ou rendues nécessaires par ………
+Dans le cadre de l’opération « {{projet}} » ({{REF}}), des prestations non prévues au marché ont été demandées ou rendues nécessaires par ………
 
 Ces prestations, détaillées ci-après, ne correspondent à aucun prix du bordereau :
 
@@ -159,7 +159,7 @@ Nous vous demandons de bien vouloir valider ce prix nouveau par ordre de service
     modeEnvoi: 'lrar',
     corps: `Madame, Monsieur,
 
-Dans le cadre du chantier {{projet}} ({{REF}}), nous vous informons que nous avons constaté ou allons constater, le ……… à ……… h, sur {{adresseChantier}}, les faits suivants :
+Dans le cadre de l’opération « {{projet}} » ({{REF}}), nous vous informons que nous avons constaté ou allons constater, le ……… à ……… h, sur {{adresseChantier}}, les faits suivants :
 
 ………
 
@@ -175,7 +175,7 @@ Conformément aux stipulations contractuelles, nous vous invitons à assister ou
     modeEnvoi: 'mail',
     corps: `Madame, Monsieur,
 
-Nous accusons réception de votre courrier / document en date du ………, référencé ………, relatif au chantier {{projet}} ({{REF}}).
+Nous accusons réception de votre courrier / document en date du ………, référencé ………, relatif à l’opération « {{projet}} » ({{REF}}).
 
 Nous en avons pris connaissance. Cet accusé de réception ne vaut pas acceptation de son contenu : nous reviendrons vers vous dans les meilleurs délais si des observations devaient être formulées.${SIGNATURE}`.replace('{{REF}}', REF_MARCHE),
   },
