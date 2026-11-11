@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-ExtraLight.woff2') format('woff2'); font-weight: 200; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-LightItalic.woff2') format('woff2'); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
+@font-face { font-family: 'VINCI Sans'; src: url('/fonts/VinciSans-Black.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans Condensed'; src: url('/fonts/VinciSansCondensed-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans Condensed'; src: url('/fonts/VinciSansCondensed-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans Condensed'; src: url('/fonts/VinciSansCondensed-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans Condensed'; src: url('/fonts/VinciSansCondensed-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Sans Condensed'; src: url('/fonts/VinciSansCondensed-Black.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Serif'; src: url('/fonts/VinciSerif-Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Serif'; src: url('/fonts/VinciSerif.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Serif'; src: url('/fonts/VinciSerif-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'VINCI Serif'; src: url('/fonts/VinciSerif-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'VINCI Serif'; src: url('/fonts/VinciSerif-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
+
+@layer base {
+  html, body { background: #FFFFFF; color: #000000; font-size: 14px; }
+  body { font-family: 'VINCI Sans', Arial, Helvetica, sans-serif; }
+  input:focus, textarea:focus, select:focus { border-color: #004489; }
+}
+
+@layer components {
+  /* Boutons (règles 8-11) — compléter les variants shadcn */
+  .btn-secondaire { @apply border border-vinci-bleu bg-white text-vinci-bleu hover:bg-vinci-bleu-tres-clair; }
+  .btn-toolbar { @apply border border-vinci-gris-bordure bg-vinci-gris-clair text-black hover:bg-vinci-gris-bordure; }
+
+  /* Tables VINCI (règles 5-7) */
+  .table-vinci { @apply w-full border-collapse text-[13px]; }
+  .table-vinci thead th { @apply sticky top-0 z-10 bg-vinci-bleu px-2 py-2 text-left font-bold text-white; }
+  .table-vinci tbody tr:nth-child(even) { @apply bg-vinci-gris-clair; }
+  .table-vinci tbody tr:nth-child(odd) { @apply bg-white; }
+  .table-vinci tbody tr[data-selected='true'] { @apply bg-vinci-bleu-tres-clair text-vinci-bleu-fonce; }
+  .table-vinci td { @apply border-b border-vinci-gris-bordure px-2 py-1.5 align-middle; }
+  .table-vinci tfoot td { @apply bg-vinci-bleu-fonce px-2 py-2 font-bold text-white; }
+  .cell-input { @apply w-full rounded-sm border border-transparent bg-transparent px-1 py-0.5 outline-none focus:border-vinci-bleu focus:bg-white; }
+  .num { @apply text-right tabular-nums; }
+
+  .page-titre { @apply text-xl font-bold text-vinci-bleu; }
+  .carte { @apply rounded-md border border-vinci-gris-bordure bg-white p-4; }
+}
