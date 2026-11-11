@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { getAuthSecret } from '@/lib/auth-secret'
 
 export async function middleware(req: NextRequest) {
   const secureCookie = req.nextUrl.protocol === 'https:'
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET, secureCookie })
+  const token = await getToken({ req, secret: await getAuthSecret(), secureCookie })
   const { pathname } = req.nextUrl
   const estLogin = pathname.startsWith('/login')
   if (!token && !estLogin) {

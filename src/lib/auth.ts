@@ -4,9 +4,11 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { authConfig } from '@/lib/auth.config'
+import { getAuthSecretSync } from '@/lib/auth-secret-node'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  secret: getAuthSecretSync(),
   providers: [
     Credentials({
       credentials: { email: {}, password: {} },

@@ -23,14 +23,18 @@ exceljs · Zustand · TanStack Query / Virtual · @dnd-kit.
 
 ```bash
 npm install
-cp .env.example .env   # renseigner DATABASE_URL, DIRECT_URL (Supabase) et AUTH_SECRET
+cp .env.example .env   # renseigner DATABASE_URL
 npx prisma db push     # crée le schéma
 npx prisma db seed     # données de démo
 npm run dev
 ```
 
-Avec Supabase : `DATABASE_URL` = chaîne « Transaction pooler » (port 6543, ajouter `?pgbouncer=true`),
-`DIRECT_URL` = connexion directe (port 5432). `AUTH_SECRET` : `openssl rand -base64 32`.
+Avec Supabase : `DATABASE_URL` = bouton **Connect** → **ORMs** → **Prisma** → ligne `DATABASE_URL`
+(port 6543, `?pgbouncer=true`), avec le mot de passe de la base.
+`AUTH_SECRET` est facultatif : à défaut, la clé de session est dérivée de `DATABASE_URL`.
+
+Déploiement Vercel : seule `DATABASE_URL` est requise. Le build (`vercel-build`) charge les
+données de démo uniquement si la base est vide.
 
 ## Comptes de démo
 
