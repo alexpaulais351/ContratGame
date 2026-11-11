@@ -6,6 +6,11 @@ import { CATEGORIES_SYSTEME_SEED } from './seed-data'
 const prisma = new PrismaClient()
 
 async function main() {
+  // Mode build (Vercel) : ne seed que si la base est vide — ne touche jamais aux données existantes.
+  if (process.env.SEED_SI_VIDE === '1' && (await prisma.user.count()) > 0) {
+    console.log('Base déjà initialisée : seed ignoré')
+    return
+  }
   const hash = await bcrypt.hash('demo1234', 10)
   await prisma.projet.deleteMany({ where: { name: 'Chantier LGV Sud' } })
   const admin = await prisma.user.upsert({
