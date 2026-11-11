@@ -1,5 +1,5 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -9,13 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { creerCourrier } from '@/actions/courriers'
-import { MODELES_COURRIERS, appliquerVariables, type ModeleCourrier } from '@/lib/courriers-templates'
+import { MODELES_COURRIERS, appliquerVariables, modeleParType, type ModeleCourrier } from '@/lib/courriers-templates'
 import { formatDateFR } from '@/lib/utils'
 import { useProfilStore } from '@/stores/profil'
 import { cn } from '@/lib/utils'
 import type { ContexteProjetDTO } from './types'
 
-export function NouveauCourrier({ projetId, referenceSuggeree, contexte }: { projetId: string; referenceSuggeree: string; contexte: ContexteProjetDTO }) {
+export function NouveauCourrier({ projetId, referenceSuggeree, contexte, modeleInitial }: { projetId: string; referenceSuggeree: string; contexte: ContexteProjetDTO; modeleInitial?: string }) {
   const router = useRouter()
   const profil = useProfilStore((s) => s.profil)
   const [modele, setModele] = useState<ModeleCourrier | null>(null)
@@ -32,6 +32,17 @@ export function NouveauCourrier({ projetId, referenceSuggeree, contexte }: { pro
       corps: appliquerVariables(m.corps, ctx),
     }))
   }
+
+  // Présélection via ?modele=<type> (bibliothèque des modèles) ; réappliquée une fois le profil hydraté
+  const preselection = useRef(false)
+  useEffect(() => {
+    if (!modeleInitial || preselection.current) return
+    const m = modeleParType(modeleInitial)
+    if (!m) return
+    choisir(m)
+    if (profil) preselection.current = true
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modeleInitial, profil])
 
   const creer = () => {
     if (!modele) return

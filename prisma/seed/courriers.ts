@@ -18,8 +18,8 @@ export async function seedCourriers(prisma: PrismaClient, projetId: string) {
       dateEnvoi,
       statut: 'envoye',
       destinataire: `${[projet.moaPrenom, projet.moaNom].filter(Boolean).join(' ') || 'Maître d’ouvrage'}\n${projet.moaAdresse ?? ''}`.trim(),
-      expediteur: 'Conduc Rail – Direction de projet',
-      lieu: 'Paris',
+      expediteur: 'Contrat Game – Direction de projet',
+      lieu: 'Lyon',
       modeEnvoi: 'lrar',
       copies: 'Direction de projet ; Service contrats',
       signataireNom: 'Jean Dupont',
@@ -30,9 +30,9 @@ Dans le cadre de l’opération « ${nom} » (Marché n° ${projet.numeroCommand
 
 Après examen, nous formulons les réserves suivantes :
 
-1. Les nouvelles contraintes de coupure de voie ne sont pas compatibles avec le planning contractuel.
+1. Les nouvelles contraintes d’accès et de phasage du chantier ne sont pas compatibles avec le planning contractuel.
 2. Les incidences financières de cette modification n'ont pas été chiffrées.
-3. Les délais d'approvisionnement des matériaux ne permettent pas le respect de la nouvelle date de démarrage.
+3. Les délais d'approvisionnement des matériaux et équipements ne permettent pas le respect de la nouvelle date de démarrage.
 
 Nous nous réservons le droit de présenter toute réclamation complémentaire. Nous vous remercions de nous faire part de votre position sous quinze (15) jours.
 

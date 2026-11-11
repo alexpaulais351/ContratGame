@@ -50,7 +50,7 @@ function ligneTitre(ws: Worksheet, texte: string, nbCols: number, sousTitre?: st
 export async function exporterMatriceExcel(m: MatriceVue, nomProjet: string, nomFichier: string) {
   const ExcelJS = (await import('exceljs')).default
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'Conduc Rail'
+  wb.creator = 'Contrat Game'
   wb.created = new Date()
 
   const a = analyserMatrice(m)

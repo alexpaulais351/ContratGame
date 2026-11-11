@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { formatDateFR } from '@/lib/utils'
 import { NouveauProjet } from './NouveauProjet'
 
-export default async function ProjetsPage() {
+export default async function ProjetsPage({ searchParams }: { searchParams: { nouveau?: string } }) {
   const session = await auth()
   const projets = await prisma.projet.findMany({
     where: { members: { some: { userId: session!.user.id } } },
@@ -15,7 +15,7 @@ export default async function ProjetsPage() {
     <main className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-titre">Mes projets</h1>
-        <NouveauProjet />
+        <NouveauProjet ouvertParDefaut={searchParams.nouveau === '1'} />
       </div>
       {projets.length === 0 ? (
         <p className="text-vinci-texte-secondaire">Aucun projet. Créez votre premier projet.</p>

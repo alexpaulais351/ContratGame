@@ -3,8 +3,8 @@ import './globals.css'
 import { Providers } from '@/components/layout/Providers'
 
 export const metadata: Metadata = {
-  title: 'Conduc Rail',
-  description: 'Gestion contractuelle et financière de chantiers ferroviaires',
+  title: 'Contrat Game',
+  description: 'Gestion contractuelle et financière de chantier',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

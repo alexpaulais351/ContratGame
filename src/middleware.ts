@@ -15,7 +15,7 @@ export async function middleware(req: NextRequest) {
   }
   if (token && estLogin) {
     const url = req.nextUrl.clone()
-    url.pathname = '/projets'
+    url.pathname = '/accueil'
     url.search = ''
     return NextResponse.redirect(url)
   }
@@ -23,5 +23,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api/auth|_next/static|_next/image|fonts|favicon.ico).*)'],
+  matcher: ['/((?!api/auth|_next/static|_next/image|fonts|favicon.ico|icon.svg).*)'],
 }

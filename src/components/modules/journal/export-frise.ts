@@ -166,10 +166,10 @@ function dessinerEntete(doc: jsPDF, largeurPage: number, ctx: Contexte, titre: s
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.text(texte(ctx.periode), largeurPage / 2, 13.5, { align: 'center' })
-  // CONDUC RAIL + projet à droite
+  // CONTRAT GAME + projet à droite
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(13)
-  doc.text('CONDUC RAIL', largeurPage - MARGE, 8.5, { align: 'right' })
+  doc.text('CONTRAT GAME', largeurPage - MARGE, 8.5, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   const projet = doc.splitTextToSize(texte(ctx.nomProjet), 60)[0] ?? ''

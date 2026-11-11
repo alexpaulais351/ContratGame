@@ -7,7 +7,7 @@ export async function connexion(_prev: string | null, formData: FormData): Promi
     await signIn('credentials', {
       email: String(formData.get('email') ?? '').toLowerCase(),
       password: String(formData.get('password') ?? ''),
-      redirectTo: String(formData.get('callbackUrl') || '/projets'),
+      redirectTo: String(formData.get('callbackUrl') || '/accueil'),
     })
     return null
   } catch (e) {

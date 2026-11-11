@@ -1,4 +1,4 @@
-# CLAUDE.md — CONDUC RAIL (version Gestion Contractuelle & Financière)
+# CLAUDE.md — CONTRAT GAME (version Gestion Contractuelle & Financière)
 # Fichier lu automatiquement par Claude Code à chaque session.
 # NE PAS MODIFIER sans mettre à jour tous les agents.
 
@@ -6,9 +6,9 @@
 
 ## PRÉSENTATION DU PROJET
 
-**Conduc Rail** est une application web de gestion contractuelle et financière
-de chantiers ferroviaires.
-Utilisateurs : conducteurs de travaux ferroviaires, travail sur tablette/PC portable.
+**Contrat Game** est une application web de gestion contractuelle et financière
+de chantier (tous types de travaux — aucune référence à un métier particulier).
+Utilisateurs : conducteurs de travaux, travail sur tablette/PC portable.
 Équipe : 2 à 5 utilisateurs simultanés, chaque utilisateur voit uniquement ses projets.
 
 ### PÉRIMÈTRE — IMPORTANT
@@ -476,7 +476,7 @@ ChantierElementaire, CreneauActivite, PlanningPersonnelLink, PlanningTractionLin
 
 Tous les PDFs (@react-pdf/renderer, composants communs `pdf-entete.tsx`) :
 ```
-En-tête : bande #004489 · logo utilisateur à gauche · "CONDUC RAIL" + projet à droite
+En-tête : bande #004489 · logo utilisateur à gauche · "CONTRAT GAME" + projet à droite
 En-tête tableau : fond #004489 texte blanc gras
 Lignes alternées : blanc / #F0F0F0
 Pied de tableau : fond #003370 texte blanc
@@ -490,8 +490,8 @@ Formatage : fonctions françaises de lib/utils.ts
 ## COMPTES DE TEST (seed)
 
 ```
-admin@conducrail.fr / demo1234  → owner du projet "Chantier LGV Sud"
-user@conducrail.fr  / demo1234  → member du projet "Chantier LGV Sud"
+admin@contratgame.fr / demo1234  → owner du projet "Chantier LGV Sud"
+user@contratgame.fr  / demo1234  → member du projet "Chantier LGV Sud"
 ```
 
 Le seed crée le projet de démo avec : lignes de DE (chapitres + lignes),

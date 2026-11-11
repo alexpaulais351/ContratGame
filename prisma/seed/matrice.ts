@@ -4,10 +4,10 @@ import { DECISIONS, criteresDuGabarit, type BidCompData, type DecisionFournisseu
 type Valeur = { note?: number; texte?: string; bool?: boolean; montant?: number; commentaire?: string; majeure?: boolean; negociable?: boolean }
 
 /**
- * Démo : matrice « Fourniture de traverses béton » avec 3 fournisseurs notés :
- *  - Préfa Rail Sud → GO (meilleur score)
- *  - Béton Voies Industrie → en attente (score sous le seuil, points négociables)
- *  - Eurotraverse Import → NO GO (non-conformité majeure : pas d'homologation SNCF Réseau)
+ * Démo : matrice « Fourniture de menuiseries extérieures aluminium » avec 3 fournisseurs notés :
+ *  - Alu Façades Industrie → GO (meilleur score)
+ *  - Menuiseries du Nord → en attente (score sous le seuil, points négociables)
+ *  - EuroAlu Import → NO GO (non-conformité majeure : absence d'Avis Technique / certification NF)
  */
 export async function seedMatrice(prisma: PrismaClient, projetId: string) {
   const fournisseurs: {
@@ -21,8 +21,8 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
     valeurs: Record<string, Valeur>
   }[] = [
     {
-      nom: 'Préfa Rail Sud',
-      refOffre: 'PRS-2026-0412',
+      nom: 'Alu Façades Industrie',
+      refOffre: 'AFI-2026-0412',
       dateOffre: '2026-03-02',
       paysFabrication: 'France',
       incoterm: 'DAP',
@@ -33,7 +33,7 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
         "Complétude de l'offre": { note: 3 },
         'Respect du cahier des charges': { note: 3 },
         'Variante proposée': { bool: false },
-        'Niveau de prix': { note: 2, commentaire: 'Prix unitaire 82,50 € / traverse, +3 % vs budget' },
+        'Niveau de prix': { note: 2, commentaire: 'Prix moyen 1 850 € / m² de menuiserie posée, +3 % vs budget' },
         'Conditions de paiement': { texte: '45 jours fin de mois' },
         'Délai de paiement conforme LME': { bool: true },
         'Révision / actualisation des prix': { texte: 'Ferme et non révisable' },
@@ -50,7 +50,7 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
         'Conformité Sapin II / devoir de vigilance': { note: 3 },
         'Certification ISO 9001': { bool: true },
         'Certification ISO 45001 / MASE': { bool: true },
-        'Agrément / homologation SNCF Réseau': { note: 3, commentaire: 'Traverses M450 homologuées' },
+        'Certification / Avis Technique': { note: 3, commentaire: 'Avis Technique CSTB en cours de validité, certification NF' },
         'Plan d’assurance qualité (PAQ)': { note: 3 },
         'Prévention / accidentologie': { note: 2 },
         'Conformité aux spécifications techniques': { note: 3 },
@@ -70,8 +70,8 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
       },
     },
     {
-      nom: 'Béton Voies Industrie',
-      refOffre: 'BVI/OF/26-118',
+      nom: 'Menuiseries du Nord',
+      refOffre: 'MDN/OF/26-118',
       dateOffre: '2026-03-05',
       paysFabrication: 'France',
       incoterm: 'FCA',
@@ -85,7 +85,7 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
         'Niveau de prix': { note: 3 },
         'Conditions de paiement': { texte: '30 jours date de facture' },
         'Délai de paiement conforme LME': { bool: true },
-        'Révision / actualisation des prix': { texte: 'Indexée acier + ciment', negociable: true, commentaire: 'Demander prix ferme' },
+        'Révision / actualisation des prix': { texte: 'Indexée aluminium', negociable: true, commentaire: 'Demander prix ferme' },
         'Garanties financières (caution, retenue)': { note: 2 },
         'Acceptation des pénalités': { note: 1, negociable: true, commentaire: 'Plafond de pénalités à 2 % : à renégocier' },
         'Délai de fabrication': { texte: '10 semaines' },
@@ -99,7 +99,7 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
         'Conformité Sapin II / devoir de vigilance': { note: 2 },
         'Certification ISO 9001': { bool: true },
         'Certification ISO 45001 / MASE': { bool: false },
-        'Agrément / homologation SNCF Réseau': { note: 2, commentaire: 'Homologation en cours de renouvellement' },
+        'Certification / Avis Technique': { note: 2, commentaire: 'Avis Technique en cours de renouvellement' },
         'Plan d’assurance qualité (PAQ)': { note: 2 },
         'Prévention / accidentologie': { note: 2 },
         'Conformité aux spécifications techniques': { note: 2 },
@@ -118,8 +118,8 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
       },
     },
     {
-      nom: 'Eurotraverse Import',
-      refOffre: 'ETI-Q-2026-031',
+      nom: 'EuroAlu Import',
+      refOffre: 'EAI-Q-2026-031',
       dateOffre: '2026-03-09',
       paysFabrication: 'Pologne',
       incoterm: 'DDP',
@@ -147,10 +147,10 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
         'Conformité Sapin II / devoir de vigilance': { note: 2 },
         'Certification ISO 9001': { bool: true },
         'Certification ISO 45001 / MASE': { bool: true },
-        'Agrément / homologation SNCF Réseau': {
+        'Certification / Avis Technique': {
           note: 1,
           majeure: true,
-          commentaire: 'Traverses non homologuées SNCF Réseau : rédhibitoire',
+          commentaire: 'Aucun Avis Technique ni certification NF : rédhibitoire',
         },
         'Plan d’assurance qualité (PAQ)': { note: 2 },
         'Prévention / accidentologie': { note: 2 },
@@ -177,11 +177,11 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
     dateEtablissement: '2026-03-12',
     synthese: {
       opportunites:
-        "Préfa Rail Sud : usine à 120 km du chantier (DAP), stock tampon possible sur site (option 1), traverses homologuées.\nBéton Voies Industrie : prix le plus compétitif parmi les offres conformes, variante d'approvisionnement proposée.",
+        "Alu Façades Industrie : usine à 120 km du chantier (DAP), stockage tampon possible sur site (option 1), Avis Technique valide.\nMenuiseries du Nord : prix le plus compétitif parmi les offres conformes, variante de vitrage proposée.",
       risques:
-        "Béton Voies Industrie : délai de fabrication de 10 semaines incompatible avec la fenêtre travaux de mai sans engagement ferme ; prix indexés.\nEurotraverse Import : absence d'homologation SNCF Réseau (non-conformité majeure), acompte de 30 % à la commande.",
+        "Menuiseries du Nord : délai de fabrication de 10 semaines incompatible avec la fenêtre de pose de mai sans engagement ferme ; prix indexés.\nEuroAlu Import : absence d'Avis Technique / certification NF (non-conformité majeure), acompte de 30 % à la commande.",
       recommandation:
-        "Retenir Préfa Rail Sud (meilleur score, aucune non-conformité). Négocier une remise de 2 % sur la fourniture pour revenir au budget théorique et intégrer l'option de stockage sur site.",
+        "Retenir Alu Façades Industrie (meilleur score, aucune non-conformité). Négocier une remise de 2 % sur la fourniture pour revenir au budget théorique et intégrer l'option de stockage sur site.",
     },
     fournisseurRecommandeId: null,
   }
@@ -189,10 +189,10 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
   const matrice = await prisma.matriceDecisionnelle.create({
     data: {
       projetId,
-      titre: 'Fourniture de traverses béton',
+      titre: 'Fourniture de menuiseries extérieures aluminium',
       acheteur: 'Claire Martin',
-      site: 'LGV Sud — base travaux de Nîmes',
-      familleAchats: 'Matériaux voie ferrée',
+      site: 'Groupe scolaire Les Tilleuls — Saint-Exemple',
+      familleAchats: 'Menuiseries extérieures et façades',
       budgetTheorique: 1_150_000,
       devise: 'EUR',
       seuilGo: 70,
@@ -238,7 +238,7 @@ export async function seedMatrice(prisma: PrismaClient, projetId: string) {
   })
   await prisma.notationCritere.createMany({ data: notations })
 
-  const reco = matrice.fournisseurs.find((x) => x.nom === 'Préfa Rail Sud')!
+  const reco = matrice.fournisseurs.find((x) => x.nom === 'Alu Façades Industrie')!
   await prisma.matriceDecisionnelle.update({
     where: { id: matrice.id },
     data: { bidComp: { ...bidComp, fournisseurRecommandeId: reco.id } },

@@ -73,7 +73,7 @@ export function MatriceBidCompPDF({ matrice: m, profil, nomProjet }: { matrice: 
   const tries = [...F].sort((x, y) => (a.scores.get(x.id)?.classement ?? 99) - (a.scores.get(y.id)?.classement ?? 99))
 
   return (
-    <Document title={`Matrice décisionnelle — ${m.titre}`} author="Conduc Rail">
+    <Document title={`Matrice décisionnelle — ${m.titre}`} author="Contrat Game">
       <Page size="A4" orientation="landscape" style={pdfStyles.page}>
         <EntetePDF profil={profil} nomProjet={nomProjet} />
         <Text style={pdfStyles.titre}>Matrice décisionnelle d&apos;offres fournisseurs — {m.titre}</Text>

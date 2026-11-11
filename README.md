@@ -1,6 +1,6 @@
-# Conduc Rail
+# Contrat Game
 
-Application web de gestion **contractuelle et financière** de chantiers ferroviaires
+Application web de gestion **contractuelle et financière** de chantier (tous types de travaux)
 (charte VINCI Construction). Spécification complète : [`CLAUDE.md`](./CLAUDE.md).
 
 ## Modules
@@ -40,8 +40,8 @@ données de démo uniquement si la base est vide.
 
 | Email | Mot de passe | Rôle sur « Chantier LGV Sud » |
 |---|---|---|
-| admin@conducrail.fr | demo1234 | owner |
-| user@conducrail.fr | demo1234 | member |
+| admin@contratgame.fr | demo1234 | owner |
+| user@contratgame.fr | demo1234 | member |
 
 ## Scripts
 
