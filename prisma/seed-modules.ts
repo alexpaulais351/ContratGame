@@ -6,6 +6,7 @@ import { seedSituations } from './seed/situations'
 import { seedPrixNouveaux } from './seed/prix-nouveaux'
 import { seedCourriers } from './seed/courriers'
 import { seedMatrice } from './seed/matrice'
+import { seedJournal } from './seed/journal'
 
 /** Données de démo par module (ordre important : DE avant Situations). */
 export async function seedModules(prisma: PrismaClient, projetId: string) {
@@ -15,6 +16,7 @@ export async function seedModules(prisma: PrismaClient, projetId: string) {
     ['Sous-traitants', seedSousTraitants],
     ['Situations', seedSituations],
     ['Prix Nouveaux', seedPrixNouveaux],
+    ['Journal', seedJournal],
     ['Courriers', seedCourriers],
     ['Matrice', seedMatrice],
   ]
