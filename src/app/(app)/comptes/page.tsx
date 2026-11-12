@@ -9,6 +9,8 @@ import { DemandesEnAttente } from '@/components/modules/comptes/DemandesEnAttent
 import type { CompteDTO } from '@/components/modules/comptes/types'
 
 export const dynamic = 'force-dynamic'
+// La validation d'un compte crée son projet d'exemple complet : laisser le temps à la Server Action.
+export const maxDuration = 60
 
 export default async function ComptesPage() {
   const session = await auth()

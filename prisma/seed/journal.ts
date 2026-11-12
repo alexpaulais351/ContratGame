@@ -105,10 +105,7 @@ const jour = (s: string) => new Date(`${s}T12:00:00.000Z`)
  * catégories système, dont des groupes rapprochés (anti-chevauchement de la frise),
  * + une fiche écart (1 chapitre + lignes, dont une importée d'un événement).
  */
-export async function seedJournal(prisma: PrismaClient, projetId: string) {
-  const categories = await prisma.categorieEvenement.findMany({ where: { projetId } })
-  const cat = (nom: string) => categories.find((c) => c.nom === nom)
-
+function evenementsExemple(): Ev[] {
   const photoReseaux = fichier(
     'photo-reseaux-enterres.png',
     'image/png',
@@ -134,7 +131,7 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
     ]),
   )
 
-  const evenements: Ev[] = [
+  return [
     {
       date: '2026-01-08',
       titre: 'Réunion de lancement du chantier',
@@ -212,11 +209,37 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
       categorie: 'Autre',
       afficherFrise: false,
     },
+    // --- événements supplémentaires : frise plus fournie sur toute l'année ---
+    { date: '2026-01-20', titre: 'Installation de la base vie et des clôtures', description: 'Cantonnements, branchements provisoires et clôtures de chantier en place.', categorie: 'Suivi / impact' },
+    { date: '2026-01-27', titre: 'Ordre de service n°2 : modification du phasage', description: 'La MOA modifie l’ordre d’intervention des bâtiments A et B.', categorie: 'Contrat' },
+    { date: '2026-02-10', titre: 'Constat d’huissier des avoisinants', description: 'État des lieux contradictoire des façades et voiries riveraines.', categorie: 'Contrat' },
+    { date: '2026-03-04', titre: 'Démarrage des fondations zone A', categorie: 'Suivi / impact' },
+    { date: '2026-03-05', titre: 'Diffusion des plans EXE réseaux indice A', categorie: 'Étude diffusion' },
+    { date: '2026-03-06', titre: 'Presque-accident : chute d’objet signalée', description: 'Quart d’heure sécurité organisé, renforcement des filets en rive.', categorie: 'SOS terrain' },
+    { date: '2026-03-26', titre: 'Réserves sur le planning transmis par la MOA', description: 'Le planning MOA ne tient pas compte des arrêts liés aux réseaux enterrés.', categorie: 'Contrat' },
+    { date: '2026-04-22', titre: 'VISA avec observations : plans réseaux', categorie: 'VISA étude' },
+    { date: '2026-04-23', titre: 'Réunion de groupement : répartition des avenants', categorie: 'Groupement' },
+    { date: '2026-05-05', titre: 'Coulage du plancher haut du RDC', categorie: 'Suivi / impact' },
+    { date: '2026-05-12', titre: 'Pénurie d’aciers : retard fournisseur', description: 'Livraison des armatures décalée de 2 semaines, recherche d’un fournisseur de secours.', categorie: 'Alerte' },
+    { date: '2026-05-13', titre: 'Mise en demeure du sous-traitant terrassement', description: 'Retards répétés et moyens insuffisants sur la zone B.', categorie: 'Contrat' },
+    { date: '2026-06-02', titre: 'Audit environnement EBGC', description: 'Tri des déchets, consommations d’eau et d’énergie : plan d’actions validé.', categorie: 'EBGC' },
+    { date: '2026-07-03', titre: 'Démarrage de la charpente métallique', categorie: 'Suivi / impact' },
+    { date: '2026-07-08', titre: 'Diffusion des plans EXE menuiseries', categorie: 'Étude diffusion' },
+    { date: '2026-07-21', titre: 'Canicule : adaptation des horaires', description: 'Horaires décalés (6h-13h) et pauses renforcées pendant l’épisode de chaleur.', categorie: 'Alerte' },
+    { date: '2026-08-03', titre: 'Fermeture estivale du chantier (2 semaines)', categorie: 'Autre' },
+    { date: '2026-09-01', titre: 'Reprise du chantier et réunion de rentrée', categorie: 'Contrat' },
+    { date: '2026-09-15', titre: 'Demande de prolongation de délai (+3 semaines)', description: 'Courrier motivé : réseaux enterrés, intempéries et pénurie d’aciers.', categorie: 'Contrat' },
+    { date: '2026-09-16', titre: 'Prix nouveau PN-002 présenté à la MOA', categorie: 'Suivi / impact' },
+    { date: '2026-10-06', titre: 'Bâtiment hors d’eau / hors d’air', categorie: 'Suivi / impact' },
+    { date: '2026-10-20', titre: 'Point EBGC : bilan carbone trimestriel', categorie: 'EBGC' },
+    { date: '2026-11-10', titre: 'Opérations préalables à la réception (OPR)', description: 'Visite contradictoire avec la MOE, liste des réserves établie.', categorie: 'Contrat' },
+    { date: '2026-12-11', titre: 'Réception des travaux avec réserves', description: 'Levée des réserves sous 30 jours.', categorie: 'Contrat' },
   ]
+}
 
-  await prisma.ligneFicheEcart.deleteMany({ where: { projetId } })
-  await prisma.evenementChantier.deleteMany({ where: { projetId, titre: { in: evenements.map((e) => e.titre) } } })
-
+async function creerEvenements(prisma: PrismaClient, projetId: string, evenements: Ev[]) {
+  const categories = await prisma.categorieEvenement.findMany({ where: { projetId } })
+  const cat = (nom: string) => categories.find((c) => c.nom === nom)
   const ids: Record<string, string> = {}
   for (const e of evenements) {
     const c = cat(e.categorie)
@@ -234,6 +257,27 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
     })
     ids[e.titre] = cree.id
   }
+  return ids
+}
+
+/**
+ * Complète un projet d'exemple existant : ajoute les événements de démo manquants (par titre),
+ * sans rien supprimer ni modifier — utilisé au déploiement pour enrichir la frise des exemples en ligne.
+ */
+export async function completerJournalExemple(prisma: PrismaClient, projetId: string) {
+  const existants = new Set((await prisma.evenementChantier.findMany({ where: { projetId }, select: { titre: true } })).map((e) => e.titre))
+  const manquants = evenementsExemple().filter((e) => !existants.has(e.titre))
+  if (manquants.length) await creerEvenements(prisma, projetId, manquants)
+  return manquants.length
+}
+
+/** Données de démo du Journal (projet neuf) + fiche écart (1 chapitre + lignes, dont une importée d'un événement). */
+export async function seedJournal(prisma: PrismaClient, projetId: string) {
+  const evenements = evenementsExemple()
+  await prisma.ligneFicheEcart.deleteMany({ where: { projetId } })
+  await prisma.evenementChantier.deleteMany({ where: { projetId, titre: { in: evenements.map((e) => e.titre) } } })
+
+  const ids = await creerEvenements(prisma, projetId, evenements)
 
   // Fiche écart : 1 chapitre + lignes (dont une importée depuis un événement)
   const evReseaux = evenements[4]

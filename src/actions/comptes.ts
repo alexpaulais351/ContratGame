@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth-helpers'
 import { estAdmin } from '@/lib/est-admin'
+import { donnerProjetExemple } from '@/lib/projet-exemple'
 import type { ActionResult } from '@/types'
 
 /** Auth + rôle admin relu en base (jamais confiance au client ni au JWT). */
@@ -49,6 +50,7 @@ export async function creerCompte(data: unknown): Promise<ActionResult<{ id: str
       memberships: { create: projetsAutorises.map((p) => ({ projetId: p.projetId, role: 'member' })) },
     },
   })
+  await donnerProjetExemple(user.id)
   revalidatePath('/comptes')
   return { success: true, data: { id: user.id } }
 }
@@ -138,6 +140,8 @@ export async function changerStatut(userId: string, statut: unknown): Promise<Ac
     if (nbAdminsActifs <= 1) return { success: false, error: 'Impossible : dernier administrateur actif' }
   }
   await prisma.user.update({ where: { id: userId }, data: { statut: parsed.data } })
+  // Compte accepté : il reçoit sa propre copie du projet d'exemple
+  if (parsed.data === 'approuve') await donnerProjetExemple(userId)
   revalidatePath('/comptes')
   revalidatePath('/accueil')
   return { success: true, data: undefined }
