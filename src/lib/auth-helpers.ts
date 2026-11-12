@@ -2,10 +2,12 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 
-/** Pour les Server Actions : lève une erreur si non authentifié. */
+/** Pour les Server Actions : lève une erreur si non authentifié ou compte non approuvé. */
 export async function requireUser() {
   const session = await auth()
   if (!session?.user?.id) throw new Error('Non authentifié')
+  const compte = await prisma.user.findUnique({ where: { id: session.user.id }, select: { statut: true } })
+  if (!compte || compte.statut !== 'approuve') throw new Error('Compte non validé')
   return session.user as { id: string; name?: string | null; email?: string | null }
 }
 

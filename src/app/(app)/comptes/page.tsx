@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { estAdmin } from '@/lib/est-admin'
 import { ListeComptes } from '@/components/modules/comptes/ListeComptes'
 import { NouveauCompte } from '@/components/modules/comptes/NouveauCompte'
+import { DemandesEnAttente } from '@/components/modules/comptes/DemandesEnAttente'
 import type { CompteDTO } from '@/components/modules/comptes/types'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +30,7 @@ export default async function ComptesPage() {
   const [users, projets] = await Promise.all([
     prisma.user.findMany({
       orderBy: [{ role: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, email: true, role: true, createdAt: true, _count: { select: { memberships: true } } },
+      select: { id: true, name: true, email: true, role: true, statut: true, nomSociete: true, createdAt: true, _count: { select: { memberships: true } } },
     }),
     prisma.projet.findMany({
       where: { members: { some: { userId: moiId } } },
@@ -43,6 +44,8 @@ export default async function ComptesPage() {
     name: u.name,
     email: u.email,
     role: u.role === 'admin' ? 'admin' : 'user',
+    statut: (['en_attente', 'approuve', 'refuse', 'suspendu'].includes(u.statut) ? u.statut : 'approuve') as CompteDTO['statut'],
+    entreprise: u.nomSociete,
     nbProjets: u._count.memberships,
     createdAt: u.createdAt.toISOString(),
   }))
@@ -58,7 +61,8 @@ export default async function ComptesPage() {
         </div>
         <NouveauCompte projets={projets.map((p) => ({ id: p.id, nom: p.name }))} />
       </div>
-      <ListeComptes comptes={comptes} moiId={moiId} />
+      <DemandesEnAttente demandes={comptes.filter((c) => c.statut === 'en_attente')} />
+      <ListeComptes comptes={comptes.filter((c) => c.statut !== 'en_attente')} moiId={moiId} />
     </main>
   )
 }

@@ -122,3 +122,23 @@ export async function supprimerCompte(userId: string): Promise<ActionResult<{ pr
   revalidatePath('/projets')
   return { success: true, data: { projetsTransferes: res.transferes } }
 }
+
+const zStatut = z.enum(['approuve', 'refuse', 'suspendu'])
+
+/** Valide (approuve), refuse ou suspend un compte. Interdit sur soi-même et sur le dernier administrateur actif. */
+export async function changerStatut(userId: string, statut: unknown): Promise<ActionResult> {
+  const admin = await requireAdmin()
+  const parsed = zStatut.safeParse(statut)
+  if (!parsed.success) return { success: false, error: 'Statut invalide' }
+  if (userId === admin.id) return { success: false, error: 'Vous ne pouvez pas modifier le statut de votre propre compte' }
+  const cible = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } })
+  if (!cible) return { success: false, error: 'Compte introuvable' }
+  if (cible.role === 'admin' && parsed.data !== 'approuve') {
+    const nbAdminsActifs = await prisma.user.count({ where: { role: 'admin', statut: 'approuve' } })
+    if (nbAdminsActifs <= 1) return { success: false, error: 'Impossible : dernier administrateur actif' }
+  }
+  await prisma.user.update({ where: { id: userId }, data: { statut: parsed.data } })
+  revalidatePath('/comptes')
+  revalidatePath('/accueil')
+  return { success: true, data: undefined }
+}
