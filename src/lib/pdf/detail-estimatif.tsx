@@ -78,7 +78,7 @@ export function DocumentDetailEstimatif({ lignes, nomProjet, profil, options }: 
   return (
     <Document title={`Détail Estimatif — ${nomProjet}`} author="Contrat Game">
       <Page size="A4" orientation={options.paysage ? 'landscape' : 'portrait'} style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet={nomProjet} />
+        <EntetePDF profil={profil} nomProjet={nomProjet} titreDocument="Détail Estimatif" />
         <Text style={pdfStyles.titre}>Détail Estimatif</Text>
         <Text style={pdfStyles.sousTitre}>
           {nbLignes} ligne{nbLignes > 1 ? 's' : ''} · {chapitres.length} chapitre{chapitres.length > 1 ? 's' : ''} · édité le {formatDateFR(new Date())} ·

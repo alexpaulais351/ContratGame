@@ -93,7 +93,7 @@ export function SousTraitantsPDF({ lignes, annee, nomProjet, profil }: {
   return (
     <Document title={`Suivi sous-traitants ${annee}`}>
       <Page size="A4" orientation="landscape" style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet={nomProjet} />
+        <EntetePDF profil={profil} nomProjet={nomProjet} titreDocument="Suivi sous-traitants" />
         <Text style={pdfStyles.titre}>Suivi des sous-traitants — {annee}</Text>
         <View style={pdfStyles.table}>
           <View style={pdfStyles.thRow}>
