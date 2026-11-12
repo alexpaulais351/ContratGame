@@ -5,7 +5,7 @@ export function BadgeDecision({ decision, className }: { decision: string; class
   const d = DECISIONS[(decision in DECISIONS ? decision : 'en_attente') as DecisionFournisseur]
   return (
     <span
-      className={cn('inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[11px] font-bold uppercase', className)}
+      className={cn('inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[12px] font-bold uppercase', className)}
       style={{ backgroundColor: d.fond, borderColor: d.couleur, color: decision === 'en_attente' ? '#000000' : d.couleur }}
     >
       <span className="size-2 rounded-full" style={{ backgroundColor: d.couleur }} />
@@ -22,5 +22,5 @@ const STYLES_STATUT: Record<string, string> = {
 
 export function BadgeStatut({ statut }: { statut: string }) {
   const label = STATUTS_MATRICE.find((s) => s.value === statut)?.label ?? statut
-  return <span className={cn('inline-block rounded-sm border px-1.5 py-0.5 text-[11px] font-medium', STYLES_STATUT[statut] ?? STYLES_STATUT.brouillon)}>{label}</span>
+  return <span className={cn('inline-block rounded-sm border px-1.5 py-0.5 text-[12px] font-medium', STYLES_STATUT[statut] ?? STYLES_STATUT.brouillon)}>{label}</span>
 }

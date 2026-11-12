@@ -112,7 +112,7 @@ export function BibliothequeModeles({ projets }: { projets: ProjetChoix[] }) {
           </div>
         )}
 
-        <div className="mt-4 whitespace-pre-wrap rounded-md border border-vinci-gris-bordure bg-vinci-gris-clair p-4 text-[13px] leading-relaxed">
+        <div className="mt-4 whitespace-pre-wrap rounded-md border border-vinci-gris-bordure bg-vinci-gris-clair p-4 text-[14px] leading-relaxed">
           <TexteAvecVariables texte={selection.corps} />
         </div>
         <p className="mt-2 text-xs text-vinci-texte-secondaire">

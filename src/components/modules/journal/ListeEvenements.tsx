@@ -41,7 +41,7 @@ export function ListeEvenements({ projetId, evenements, categories, surligne, on
               <button type="button" className="text-left font-bold text-vinci-bleu hover:underline" onClick={() => onModifier(ev)}>
                 {ev.titre}
               </button>
-              {ev.description && <p className="mt-0.5 whitespace-pre-wrap text-[12px] text-vinci-texte-secondaire">{ev.description}</p>}
+              {ev.description && <p className="mt-0.5 whitespace-pre-wrap text-[13px] text-vinci-texte-secondaire">{ev.description}</p>}
               {ev.courrierId && (
                 <Link
                   href={`/projets/${projetId}/courriers/${ev.courrierId}`}
