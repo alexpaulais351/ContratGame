@@ -14,7 +14,7 @@ import { nomFichierSur } from '@/lib/pdf/format'
 import { FriseRendu } from './FriseRendu'
 import { chargerFichier } from './fichiers'
 import type { MiseEnPageFrise, ImageJointe, ItemLegende } from './export-frise'
-import { COULEURS_SANS_CATEGORIE, jourFR, type CategorieDTO, type EvenementDTO } from './types'
+import { COULEURS_SANS_CATEGORIE, couleursDe, jourFR, nomCategorie, type CategorieDTO, type EvenementDTO } from './types'
 
 type Props = {
   open: boolean
@@ -88,6 +88,16 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
           profil,
           debut,
           fin,
+          journal: [...evs]
+            .sort((a, b) => a.jour.localeCompare(b.jour))
+            .map((e) => ({
+              jour: e.jour,
+              titre: e.titre,
+              description: e.description,
+              categorie: nomCategorie(e, categories),
+              couleurs: couleursDe(e, categories),
+              piecesJointes: e.fichiers.map((f) => f.nom),
+            })),
           chargerImages: async () => {
             const res: ImageJointe[] = []
             for (const e of evs) {

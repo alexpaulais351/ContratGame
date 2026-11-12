@@ -476,7 +476,7 @@ ChantierElementaire, CreneauActivite, PlanningPersonnelLink, PlanningTractionLin
 
 Tous les PDFs (@react-pdf/renderer, composants communs `pdf-entete.tsx`) :
 ```
-En-tête : bande #004489 · logo utilisateur à gauche · "CONTRAT GAME" + projet à droite
+En-tête : bande #004489 · logo du profil utilisateur à gauche (à défaut nom de société) · nom du projet à droite (pas de « CONTRAT GAME »)
 En-tête tableau : fond #004489 texte blanc gras
 Lignes alternées : blanc / #F0F0F0
 Pied de tableau : fond #003370 texte blanc
