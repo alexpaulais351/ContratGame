@@ -14,7 +14,7 @@ export const pdfStyles = StyleSheet.create({
   logoFond: { backgroundColor: PDF_COULEURS.blanc, padding: 3, borderRadius: 2 },
   societe: { color: PDF_COULEURS.blanc, fontSize: 10, fontFamily: 'Helvetica-Bold' },
   droite: { alignItems: 'flex-end' },
-  marque: { color: PDF_COULEURS.blanc, fontSize: 14, fontFamily: 'Helvetica-Bold', letterSpacing: 1 },
+  marque: { color: PDF_COULEURS.blanc, fontSize: 11, fontFamily: 'Helvetica-Bold', textAlign: 'right' },
   projet: { color: PDF_COULEURS.blanc, fontSize: 9 },
   titre: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: PDF_COULEURS.enTete, marginBottom: 8 },
   sousTitre: { fontSize: 9, color: PDF_COULEURS.texteSecondaire, marginBottom: 10 },
@@ -37,25 +37,22 @@ export const pdfStyles = StyleSheet.create({
 
 type EnteteProps = { profil: ProfilSociete | null; nomProjet: string; style?: Style }
 
-/** Bande #004489 : logo utilisateur à gauche, "CONTRAT GAME" + projet à droite. */
+/** Bande #004489 : logo du profil utilisateur à gauche (à défaut, nom de société), projet à droite. */
 export function EntetePDF({ profil, nomProjet }: EnteteProps) {
   return (
     <View style={pdfStyles.entete} fixed>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {profil?.logoSociete ? (
           <View style={pdfStyles.logoFond}>
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src={profil.logoSociete} style={pdfStyles.logo} />
           </View>
+        ) : profil?.nomSociete ? (
+          <Text style={pdfStyles.societe}>{profil.nomSociete}</Text>
         ) : null}
-        {profil?.nomSociete ? <Text style={pdfStyles.societe}>{profil.nomSociete}</Text> : null}
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <View style={pdfStyles.droite}>
-          <Text style={pdfStyles.marque}>CONTRAT GAME</Text>
-          <Text style={pdfStyles.projet}>{nomProjet}</Text>
-        </View>
-        <LogoPDF size={30} />
+      <View style={[pdfStyles.droite, { maxWidth: '55%' }]}>
+        <Text style={pdfStyles.marque}>{nomProjet}</Text>
       </View>
     </View>
   )

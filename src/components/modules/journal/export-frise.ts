@@ -142,22 +142,21 @@ type Contexte = {
 function dessinerEntete(doc: jsPDF, largeurPage: number, ctx: Contexte, titre: string) {
   couleur(doc, VINCI.bleu, 'fill')
   doc.rect(0, 0, largeurPage, ENTETE_H, 'F')
-  let x = MARGE
+  const x = MARGE
+  couleur(doc, VINCI.blanc, 'text')
   if (ctx.logo) {
-    const hLogo = 11
-    const wLogo = Math.min(34, (ctx.logo.w / ctx.logo.h) * hLogo)
+    // Logo du profil de l'utilisateur, sur cartouche blanc
+    const hLogo = 12
+    const wLogo = Math.min(42, (ctx.logo.w / ctx.logo.h) * hLogo)
     const hReel = Math.min(hLogo, (ctx.logo.h / ctx.logo.w) * wLogo)
     couleur(doc, VINCI.blanc, 'fill')
-    doc.roundedRect(x - 1, (ENTETE_H - hLogo) / 2 - 1, wLogo + 2, hLogo + 2, 0.8, 0.8, 'F')
+    doc.roundedRect(x - 1.2, (ENTETE_H - hReel) / 2 - 1.2, wLogo + 2.4, hReel + 2.4, 0.8, 0.8, 'F')
     doc.addImage(ctx.logo.data, 'PNG', x, (ENTETE_H - hReel) / 2, wLogo, hReel, undefined, 'FAST')
-    x += wLogo + 4
-  }
-  couleur(doc, VINCI.blanc, 'text')
-  if (ctx.profil?.nomSociete) {
+  } else if (ctx.profil?.nomSociete) {
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
+    doc.setFontSize(10)
     const nom = doc.splitTextToSize(texte(ctx.profil.nomSociete), Math.max(20, largeurPage / 2 - x - 45))[0] ?? ''
-    doc.text(nom, x, ENTETE_H / 2 + 1.2)
+    doc.text(nom, x, ENTETE_H / 2 + 1.4)
   }
   // Titre + période au centre
   doc.setFont('helvetica', 'bold')
@@ -166,14 +165,11 @@ function dessinerEntete(doc: jsPDF, largeurPage: number, ctx: Contexte, titre: s
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.text(texte(ctx.periode), largeurPage / 2, 13.5, { align: 'center' })
-  // CONTRAT GAME + projet à droite
+  // Projet à droite
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.text('CONTRAT GAME', largeurPage - MARGE, 8.5, { align: 'right' })
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8.5)
-  const projet = doc.splitTextToSize(texte(ctx.nomProjet), 60)[0] ?? ''
-  doc.text(projet, largeurPage - MARGE, 13.5, { align: 'right' })
+  doc.setFontSize(10.5)
+  const projet = doc.splitTextToSize(texte(ctx.nomProjet), Math.min(80, largeurPage / 2 - 50))
+  doc.text(projet.slice(0, 2), largeurPage - MARGE, projet.length > 1 ? 8 : ENTETE_H / 2 + 1.4, { align: 'right' })
 }
 
 function dessinerPied(doc: jsPDF, largeurPage: number, hauteurPage: number, page: number, total: number) {
@@ -214,6 +210,107 @@ function dessinerLegende(doc: jsPDF, lignes: LigneLegende[]) {
 // Génération
 // ---------------------------------------------------------------------------
 
+export type LigneJournal = {
+  /** 'AAAA-MM-JJ' */
+  jour: string
+  titre: string
+  description: string | null
+  categorie: string
+  couleurs: CouleursCategorie
+  piecesJointes: string[]
+}
+
+/** Tableau du journal (événements cochés « Frise » de la période), pages paysage. */
+function dessinerTableauJournal(doc: jsPDF, ctx: Contexte, lignes: LigneJournal[], portraits: boolean[]) {
+  const cols = [
+    { titre: 'Date', l: 22 },
+    { titre: 'Catégorie', l: 34 },
+    { titre: 'Événement', l: 70 },
+    { titre: 'Description', l: 0 },
+    { titre: 'Pièces jointes', l: 40 },
+  ]
+  const largeurTable = A4_L - 2 * MARGE
+  cols[3].l = largeurTable - cols.reduce((t, c) => t + c.l, 0)
+  const PAD = 1.6
+  const INTER = 3.6 // interligne (mm) en 8 pt
+  const HAUT_TABLE = ENTETE_H + 8
+  const BAS_TABLE = PIED_Y - 3
+
+  const nouvellePage = () => {
+    doc.addPage('a4', 'landscape')
+    portraits.push(false)
+    dessinerEntete(doc, A4_L, ctx, 'Journal du chantier')
+    let x = MARGE
+    couleur(doc, VINCI.bleu, 'fill')
+    doc.rect(MARGE, HAUT_TABLE, largeurTable, 7, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8.5)
+    couleur(doc, VINCI.blanc, 'text')
+    for (const c of cols) {
+      doc.text(texte(c.titre), x + PAD, HAUT_TABLE + 4.7)
+      x += c.l
+    }
+    return HAUT_TABLE + 7
+  }
+
+  let y = nouvellePage()
+  lignes.forEach((l, i) => {
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    const cTitre = doc.splitTextToSize(texte(l.titre), cols[2].l - 2 * PAD) as string[]
+    doc.setFont('helvetica', 'normal')
+    const cDesc = l.description ? (doc.splitTextToSize(texte(l.description), cols[3].l - 2 * PAD) as string[]) : ['-']
+    const cCat = doc.splitTextToSize(texte(l.categorie || 'Sans catégorie'), cols[1].l - 2 * PAD - 4) as string[]
+    const cPj = l.piecesJointes.length
+      ? (doc.splitTextToSize(texte(l.piecesJointes.join(', ')), cols[4].l - 2 * PAD) as string[])
+      : ['-']
+    const nb = Math.max(cTitre.length, cDesc.length, cCat.length, cPj.length, 1)
+    const h = nb * INTER + 2 * PAD + 0.6
+    if (y + h > BAS_TABLE) y = nouvellePage()
+    // fond alterné blanc / gris clair
+    couleur(doc, i % 2 ? VINCI.grisClair : VINCI.blanc, 'fill')
+    doc.rect(MARGE, y, largeurTable, h, 'F')
+    couleur(doc, VINCI.grisBordure, 'draw')
+    doc.setLineWidth(0.15)
+    doc.line(MARGE, y + h, MARGE + largeurTable, y + h)
+    const yTexte = y + PAD + 2.7
+    let x = MARGE
+    couleur(doc, VINCI.noir, 'text')
+    doc.setFont('helvetica', 'normal')
+    doc.text(jourFR(l.jour), x + PAD, yTexte)
+    x += cols[0].l
+    // pastille de catégorie
+    couleur(doc, l.couleurs.couleurBg, 'fill')
+    couleur(doc, l.couleurs.couleurBorder, 'draw')
+    doc.setLineWidth(0.3)
+    doc.roundedRect(x + PAD, yTexte - 2.6, 3.2, 3.2, 0.5, 0.5, 'FD')
+    couleur(doc, l.couleurs.couleurPoint, 'fill')
+    doc.circle(x + PAD + 1.6, yTexte - 1, 0.7, 'F')
+    couleur(doc, VINCI.noir, 'text')
+    doc.text(cCat, x + PAD + 4.6, yTexte, { lineHeightFactor: 1.6 })
+    x += cols[1].l
+    doc.setFont('helvetica', 'bold')
+    couleur(doc, VINCI.bleuFonce, 'text')
+    doc.text(cTitre, x + PAD, yTexte, { lineHeightFactor: 1.6 })
+    x += cols[2].l
+    doc.setFont('helvetica', 'normal')
+    couleur(doc, VINCI.noir, 'text')
+    doc.text(cDesc, x + PAD, yTexte, { lineHeightFactor: 1.6 })
+    x += cols[3].l
+    couleur(doc, VINCI.texteSecondaire, 'text')
+    doc.text(cPj, x + PAD, yTexte, { lineHeightFactor: 1.6 })
+    y += h
+  })
+  // pied du tableau
+  if (y + 7 > BAS_TABLE) y = nouvellePage()
+  couleur(doc, VINCI.bleuFonce, 'fill')
+  doc.rect(MARGE, y, largeurTable, 7, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8.5)
+  couleur(doc, VINCI.blanc, 'text')
+  doc.text(texte(`${lignes.length} événement${lignes.length > 1 ? 's' : ''} sur la période`), MARGE + PAD, y + 4.7)
+}
+
 export type ImageJointe = { jour: string; titreEvenement: string; nom: string; dataUrl: string }
 
 export type ParametresExport = {
@@ -226,6 +323,8 @@ export type ParametresExport = {
   debut: string
   fin: string
   chargerImages: () => Promise<ImageJointe[]>
+  /** lignes du tableau du journal (événements cochés « Frise » de la période) */
+  journal: LigneJournal[]
 }
 
 export async function genererFrisePDF(p: ParametresExport) {
@@ -240,14 +339,26 @@ export async function genererFrisePDF(p: ParametresExport) {
   const echelleMaxSurface = Math.sqrt(SURFACE_MAX_CANVAS / Math.max(1, largeurPx * hauteurPx))
   const echelleCanvas = Math.max(0.1, Math.min(echelleSouhaitee, echelleMaxSurface))
   if (document.fonts?.ready) await document.fonts.ready
-  const canvas = await html2canvas(p.noeud, {
-    scale: echelleCanvas,
-    backgroundColor: VINCI.blanc,
-    logging: false,
-    useCORS: true,
-    windowWidth: Math.max(window.innerWidth, largeurPx),
-    windowHeight: Math.max(window.innerHeight, hauteurPx),
-  })
+  // Tailwind (preflight) met les <img> en display:block : cela fausse la mesure de la ligne de base
+  // du texte faite par html2canvas (texte décalé d'une demi-ligne vers le bas et rogné par les bulles).
+  // On rétablit le comportement par défaut des images le temps de la capture uniquement.
+  const correctif = document.createElement('style')
+  correctif.textContent = 'img { display: inline !important; vertical-align: baseline !important; }'
+  document.head.appendChild(correctif)
+  let canvas: HTMLCanvasElement
+  try {
+    canvas = await html2canvas(p.noeud, {
+      scale: echelleCanvas,
+      backgroundColor: VINCI.blanc,
+      logging: false,
+      useCORS: true,
+      windowWidth: Math.max(window.innerWidth, largeurPx),
+      windowHeight: Math.max(window.innerHeight, hauteurPx),
+    })
+  } finally {
+    correctif.remove()
+  }
+
 
   // 2. Document
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true })
@@ -298,7 +409,10 @@ export async function genererFrisePDF(p: ParametresExport) {
   canvas.width = 0
   canvas.height = 0
 
-  // 4. Pièces jointes images de la période : pages portrait
+  // 4. Tableau du journal (événements cochés « Frise » de la période)
+  if (p.journal.length > 0) dessinerTableauJournal(doc, ctx, p.journal, portraits)
+
+  // 5. Pièces jointes images de la période : pages portrait
   const images = await p.chargerImages()
   for (const im of images) {
     let jpeg: Awaited<ReturnType<typeof reencoder>>
@@ -329,7 +443,7 @@ export async function genererFrisePDF(p: ParametresExport) {
     doc.addImage(jpeg.data, 'JPEG', MARGE + (boiteL - w) / 2, haut, w, h, undefined, 'FAST')
   }
 
-  // 5. Pieds de page (total connu)
+  // 6. Pieds de page (total connu)
   const total = doc.getNumberOfPages()
   for (let i = 1; i <= total; i++) {
     doc.setPage(i)
@@ -337,7 +451,7 @@ export async function genererFrisePDF(p: ParametresExport) {
     dessinerPied(doc, portrait ? A4_H : A4_L, portrait ? A4_L : A4_H, i, total)
   }
 
-  // 6. Période dans le nom de fichier
+  // 7. Période dans le nom de fichier
   const blob = doc.output('blob')
   telechargerBlob(blob, `Frise_${p.nomFichierProjet}_${p.debut}_au_${p.fin}.pdf`)
 }
