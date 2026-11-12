@@ -109,7 +109,7 @@ export function NouveauCourrier({ projetId, referenceSuggeree, contexte, modeleI
             </div>
             <div>
               <Label htmlFor="corps">Corps du courrier</Label>
-              <Textarea id="corps" rows={16} value={form.corps} onChange={(e) => setForm({ ...form, corps: e.target.value })} className="font-mono text-[13px]" />
+              <Textarea id="corps" rows={16} value={form.corps} onChange={(e) => setForm({ ...form, corps: e.target.value })} className="font-mono text-[14px]" />
             </div>
             <div className="flex justify-end gap-2">
               <Button asChild variant="outline" className="btn-secondaire"><Link href={`/projets/${projetId}/courriers`}>Annuler</Link></Button>

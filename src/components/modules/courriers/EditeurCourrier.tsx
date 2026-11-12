@@ -227,14 +227,14 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
         </div>
         <div>
           <Label htmlFor="corps">Corps du courrier</Label>
-          <Textarea id="corps" rows={22} value={form.corps} onChange={(e) => maj('corps', e.target.value)} className="font-mono text-[13px] leading-relaxed" />
+          <Textarea id="corps" rows={22} value={form.corps} onChange={(e) => maj('corps', e.target.value)} className="font-mono text-[14px] leading-relaxed" />
         </div>
       </div>
 
       <Dialog open={apercu} onOpenChange={setApercu}>
         <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
           <DialogHeader><DialogTitle>Aperçu du courrier</DialogTitle><DialogDescription>Rendu indicatif ; l’export PDF applique l’en-tête société.</DialogDescription></DialogHeader>
-          <div className="border-t-8 border-vinci-bleu bg-white p-6 text-[13px] leading-relaxed shadow-inner">
+          <div className="border-t-8 border-vinci-bleu bg-white p-6 text-[14px] leading-relaxed shadow-inner">
             <div className="mb-4 border-b border-vinci-gris-bordure pb-3">
               <div className="font-bold text-vinci-bleu">{profil?.nomSociete}</div>
               <div className="whitespace-pre-line text-xs text-vinci-texte-secondaire">{profil?.adresseSociete}</div>

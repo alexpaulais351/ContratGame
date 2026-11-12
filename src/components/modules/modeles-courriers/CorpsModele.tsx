@@ -22,7 +22,7 @@ export function TexteAvecVariables({ texte }: { texte: string }) {
             <span
               key={i}
               title={`Variable remplacée automatiquement : {{${v[1]}}}`}
-              className="mx-0.5 inline-block rounded-sm border border-vinci-bleu-moyen bg-vinci-bleu-moyen-clair px-1 py-px align-baseline font-sans text-[11px] font-bold leading-tight text-vinci-bleu"
+              className="mx-0.5 inline-block rounded-sm border border-vinci-bleu-moyen bg-vinci-bleu-moyen-clair px-1 py-px align-baseline font-sans text-[12px] font-bold leading-tight text-vinci-bleu"
             >
               {libelleVariable(v[1])}
             </span>

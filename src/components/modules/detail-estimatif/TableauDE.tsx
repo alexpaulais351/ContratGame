@@ -579,7 +579,7 @@ function ApercuGlisser({ ligne, sousTotal }: { ligne: LigneDEClient; sousTotal: 
   return (
     <div
       className={cn(
-        'flex cursor-grabbing items-center gap-3 rounded-sm border border-vinci-bleu px-2 text-[13px] shadow-lg',
+        'flex cursor-grabbing items-center gap-3 rounded-sm border border-vinci-bleu px-2 text-[14px] shadow-lg',
         ligne.estChapitre ? 'bg-vinci-bleu-tres-clair font-bold text-vinci-bleu-fonce' : 'bg-white',
       )}
       style={{ height: HAUTEUR_LIGNE }}
