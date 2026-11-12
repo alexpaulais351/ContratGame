@@ -56,33 +56,34 @@ model Connexion {
 }
 
 model Projet {
-  id               String                 @id @default(cuid())
-  name             String
-  description      String?
-  moaNom           String?
-  moaPrenom        String?
-  moaAdresse       String?
-  numeroAffaire    String?
-  numeroCommande   String?
-  numeroOTP        String?
-  adresseChantier  String?
-  dateDebut        DateTime?
-  dateFin          DateTime?
-  modulesMasques   Json                   @default("[]")
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
-  members          ProjetMember[]
-  lignesDE         LigneDE[]
-  coTraitants      CoTraitant[]
-  situations       Situation[]
-  prixNouveaux     PrixNouveau[]
-  sousTraitants    SousTraitant[]
-  courriers        CourrierChantier[]
-  categories       CategorieEvenement[]
-  evenements       EvenementChantier[]
-  periodes         PeriodeFrise[]
-  lignesFicheEcart LigneFicheEcart[]
-  matrices         MatriceDecisionnelle[]
+  id                String                 @id @default(cuid())
+  name              String
+  description       String?
+  moaNom            String?
+  moaPrenom         String?
+  moaAdresse        String?
+  numeroAffaire     String?
+  numeroCommande    String?
+  numeroOTP         String?
+  adresseChantier   String?
+  dateDebut         DateTime?
+  dateFin           DateTime?
+  modulesMasques    Json                   @default("[]")
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  members           ProjetMember[]
+  lignesDE          LigneDE[]
+  coTraitants       CoTraitant[]
+  situations        Situation[]
+  prixNouveaux      PrixNouveau[]
+  sousTraitants     SousTraitant[]
+  courriers         CourrierChantier[]
+  categories        CategorieEvenement[]
+  evenements        EvenementChantier[]
+  periodes          PeriodeFrise[]
+  lignesFicheEcart  LigneFicheEcart[]
+  matrices          MatriceDecisionnelle[]
+  contactsDiffusion ContactDiffusion[]
 }
 
 model ProjetMember {
@@ -134,6 +135,7 @@ model Situation {
   createdAt   DateTime         @default(now())
   projet      Projet           @relation(fields: [projetId], references: [id], onDelete: Cascade)
   lignes      LigneSituation[]
+  lignesPN    LigneSituationPN[]
 
   @@unique([projetId, numero])
 }
@@ -148,6 +150,21 @@ model LigneSituation {
   ligneDE      LigneDE   @relation(fields: [ligneDEId], references: [id], onDelete: Cascade)
 
   @@unique([situationId, ligneDEId])
+}
+
+/// Avancement d'un prix nouveau (OS reçu) dans une situation de travaux.
+model LigneSituationPN {
+  id            String      @id @default(cuid())
+  situationId   String
+  prixNouveauId String
+  /// avancement cumulé en % (0-100)
+  avancement    Float       @default(0)
+  /// montant de référence (accepté, sinon présenté) figé à la saisie
+  montantBase   Float       @default(0)
+  situation     Situation   @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  prixNouveau   PrixNouveau @relation(fields: [prixNouveauId], references: [id], onDelete: Cascade)
+
+  @@unique([situationId, prixNouveauId])
 }
 
 model PrixNouveau {
@@ -167,6 +184,7 @@ model PrixNouveau {
   commentaire          String?
   ordre                Int       @default(0)
   projet               Projet    @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  lignesSituation      LigneSituationPN[]
 }
 
 model SousTraitant {
@@ -370,4 +388,29 @@ model NotationCritere {
   fournisseur                FournisseurCandidat @relation(fields: [fournisseurId], references: [id], onDelete: Cascade)
 
   @@unique([critereId, fournisseurId])
+}
+
+/// Liste de diffusion du chantier (destinataires / copies des courriers, diffusion des infos chantier)
+model ContactDiffusion {
+  id                    String   @id @default(cuid())
+  projetId              String
+  organisation          String
+  civilite              String?
+  prenom                String?
+  nom                   String?
+  fonction              String?
+  /// 'moa' | 'moe' | 'amo' | 'opc' | 'csps' | 'controle' | 'bet' | 'entreprise' | 'sous_traitant' | 'cotraitant' | 'concessionnaire' | 'administration' | 'interne' | 'autre'
+  role                  String
+  email                 String?
+  telephone             String?
+  adresse               String?
+  destinataireParDefaut Boolean  @default(false)
+  copieParDefaut        Boolean  @default(false)
+  diffusionCR           Boolean  @default(true)
+  commentaire           String?
+  ordre                 Int      @default(0)
+  createdAt             DateTime @default(now())
+  projet                Projet   @relation(fields: [projetId], references: [id], onDelete: Cascade)
+
+  @@index([projetId, ordre])
 }

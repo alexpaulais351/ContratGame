@@ -26,6 +26,7 @@ const avenantSchema = z.object({
 function revalider(projetId: string) {
   revalidatePath(`/projets/${projetId}/sous-traitants`)
   revalidatePath(`/projets/${projetId}/suivi/sous-traitants`)
+  revalidatePath(`/projets/${projetId}/suivi/situations`, 'layout')
 }
 const err = (e: unknown): { success: false; error: string } => ({
   success: false,

@@ -14,9 +14,12 @@ export async function calculerRecapST(projetId: string, annee: number, mois: num
     const montantTotal = st.montantMarche + st.avenants.reduce((a, v) => a + v.montant, 0)
     const factureMois = st.facturations.filter((f) => f.annee === annee && f.mois === mois).reduce((a, f) => a + f.montant, 0)
     const cumule = st.facturations.filter((f) => cleMois(f.annee, f.mois) <= cle).reduce((a, f) => a + f.montant, 0)
+    const cumulPrecedent = st.facturations.filter((f) => cleMois(f.annee, f.mois) < cle).reduce((a, f) => a + f.montant, 0)
     return {
       id: st.id,
       nom: st.nom,
+      paiementDirect: st.paiementDirect,
+      cumulPrecedent,
       montantTotal,
       factureMois,
       cumule,

@@ -13,22 +13,36 @@ import { MODELES_COURRIERS, appliquerVariables, modeleParType, type ModeleCourri
 import { formatDateFR } from '@/lib/utils'
 import { useProfilStore } from '@/stores/profil'
 import { cn } from '@/lib/utils'
+import { blocDestinataire, estDestinataire, texteCopies, type ContactDiffusionDTO } from '@/components/modules/diffusion/contacts'
+import { ChoixCopies, ChoixDestinataire } from './ChampsDiffusion'
 import type { ContexteProjetDTO } from './types'
 
-export function NouveauCourrier({ projetId, referenceSuggeree, contexte, modeleInitial }: { projetId: string; referenceSuggeree: string; contexte: ContexteProjetDTO; modeleInitial?: string }) {
+export function NouveauCourrier({ projetId, referenceSuggeree, contexte, modeleInitial, contacts = [] }: {
+  projetId: string; referenceSuggeree: string; contexte: ContexteProjetDTO; modeleInitial?: string; contacts?: ContactDiffusionDTO[]
+}) {
   const router = useRouter()
   const profil = useProfilStore((s) => s.profil)
   const [modele, setModele] = useState<ModeleCourrier | null>(null)
   const [pending, start] = useTransition()
-  const [form, setForm] = useState({ reference: referenceSuggeree, objet: '', destinataire: '', corps: '' })
+  const [form, setForm] = useState({ reference: referenceSuggeree, objet: '', destinataire: '', copies: '', corps: '' })
+
+  // Préremplissage depuis la liste de diffusion : destinataire par défaut (sinon MOA des infos projet), copies par défaut.
+  const destinataireDefaut = () => {
+    const c = contacts.find((x) => x.destinataireParDefaut)
+    return c ? blocDestinataire(c) : [contexte.moa, contexte.moaAdresse].filter(Boolean).join('\n')
+  }
+  const copiesDefaut = (destinataire: string) =>
+    texteCopies(contacts.filter((x) => x.copieParDefaut && !estDestinataire(destinataire, x)))
 
   const choisir = (m: ModeleCourrier) => {
     const ctx = { ...contexte, date: formatDateFR(new Date()), societe: profil?.nomSociete ?? '', signataire: profil?.nom ?? '' }
     setModele(m)
+    const destinataire = destinataireDefaut()
     setForm((f) => ({
       ...f,
       objet: appliquerVariables(m.objet, ctx).replace(/…+/g, '').replace(/\s+–\s*$/, ' – ').trimStart(),
-      destinataire: [contexte.moa, contexte.moaAdresse].filter(Boolean).join('\n'),
+      destinataire,
+      copies: copiesDefaut(destinataire),
       corps: appliquerVariables(m.corps, ctx),
     }))
   }
@@ -53,6 +67,7 @@ export function NouveauCourrier({ projetId, referenceSuggeree, contexte, modeleI
         reference: form.reference,
         objet: form.objet,
         destinataire: form.destinataire,
+        copies: form.copies,
         corps: form.corps,
         expediteur: profil?.nomSociete ?? '',
         signataireNom: profil?.nom ?? '',
@@ -103,9 +118,17 @@ export function NouveauCourrier({ projetId, referenceSuggeree, contexte, modeleI
                 <Input id="objet" value={form.objet} onChange={(e) => setForm({ ...form, objet: e.target.value })} />
               </div>
             </div>
-            <div>
-              <Label htmlFor="dest">Destinataire (adresse)</Label>
-              <Textarea id="dest" rows={3} value={form.destinataire} onChange={(e) => setForm({ ...form, destinataire: e.target.value })} />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="dest">Destinataire (adresse)</Label>
+                <div className="mb-1.5 mt-1"><ChoixDestinataire projetId={projetId} contacts={contacts} onChoisir={(t) => setForm((f) => ({ ...f, destinataire: t }))} /></div>
+                <Textarea id="dest" rows={4} value={form.destinataire} onChange={(e) => setForm({ ...form, destinataire: e.target.value })} />
+              </div>
+              <div>
+                <Label htmlFor="copies">Copies</Label>
+                <div className="mb-1.5 mt-1"><ChoixCopies projetId={projetId} contacts={contacts} destinataire={form.destinataire} copies={form.copies} onChange={(t) => setForm((f) => ({ ...f, copies: t }))} /></div>
+                <Textarea id="copies" rows={4} value={form.copies} onChange={(e) => setForm({ ...form, copies: e.target.value })} placeholder="Organisation (Prénom Nom) ; …" />
+              </div>
             </div>
             <div>
               <Label htmlFor="corps">Corps du courrier</Label>

@@ -8,11 +8,17 @@ export default async function SituationsPage({ params }: { params: { id: string 
   const situations = await prisma.situation.findMany({
     where: { projetId: projet.id },
     orderBy: { numero: 'asc' },
-    include: { lignes: { select: { quantite: true, prixUnitaire: true } } },
+    include: {
+      lignes: { select: { quantite: true, prixUnitaire: true } },
+      lignesPN: { select: { avancement: true, montantBase: true } },
+    },
   })
   let precedent = 0
   const items: SituationListeItem[] = situations.map((s) => {
-    const cumul = s.lignes.reduce((a, l) => a + l.quantite * l.prixUnitaire, 0)
+    // travaux du marché + prix nouveaux (OS reçus)
+    const cumul =
+      s.lignes.reduce((a, l) => a + l.quantite * l.prixUnitaire, 0) +
+      s.lignesPN.reduce((a, l) => a + (l.avancement / 100) * l.montantBase, 0)
     const it: SituationListeItem = {
       id: s.id, numero: s.numero, libelle: s.libelle, annee: s.annee, mois: s.mois,
       statut: s.statut === 'validee' ? 'validee' : 'brouillon',

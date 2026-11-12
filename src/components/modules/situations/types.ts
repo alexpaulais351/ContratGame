@@ -30,6 +30,10 @@ export type LigneDETableau = {
 export type RecapSTLigne = {
   id: string
   nom: string
+  /** sous-traitant en paiement direct par le maître d'ouvrage */
+  paiementDirect: boolean
+  /** cumul facturé jusqu'au mois précédent (inclus) */
+  cumulPrecedent: number
   montantTotal: number
   factureMois: number
   cumule: number
@@ -52,4 +56,22 @@ export type LignePDFSituation = {
   montantPrecedent: number
   montantMois: number
   montantCumul: number
+}
+
+/** Prix nouveau avec OS reçu, intégré à la situation (avancement cumulé en %). */
+export type LignePNSituation = {
+  id: string
+  numero: string
+  intitule: string
+  numeroOS: string | null
+  /** 'AAAA-MM-JJ' */
+  dateOS: string | null
+  /** true si montant accepté connu (sinon montant présenté) */
+  accepte: boolean
+  /** montant de référence (accepté, sinon présenté) */
+  montantBase: number
+  /** montant de référence figé dans la situation précédente */
+  montantBasePrecedent: number
+  avancementPrecedent: number
+  avancement: number
 }

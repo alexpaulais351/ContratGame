@@ -16,13 +16,15 @@ import { formatDateFR, toInputDate } from '@/lib/utils'
 import { useExportPDF } from '@/hooks/useExportPDF'
 import { useProfilStore } from '@/stores/profil'
 import { BadgeStatutCourrier } from './BadgeStatut'
+import { ChoixCopies, ChoixDestinataire } from './ChampsDiffusion'
+import type { ContactDiffusionDTO } from '@/components/modules/diffusion/contacts'
 import type { CourrierDTO } from './types'
 
 const SELECT = 'h-10 w-full rounded-md border border-vinci-gris-bordure bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-vinci-bleu'
 
 type Champs = Omit<CourrierDTO, 'id' | 'projetId' | 'evenementId'>
 
-export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; nomProjet: string }) {
+export function EditeurCourrier({ initial, nomProjet, contacts = [] }: { initial: CourrierDTO; nomProjet: string; contacts?: ContactDiffusionDTO[] }) {
   const router = useRouter()
   const profil = useProfilStore((s) => s.profil)
   const { exportAvecGuard, isExporting } = useExportPDF()
@@ -197,6 +199,7 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <Label htmlFor="dest">Destinataire (adresse)</Label>
+            <div className="mb-1.5 mt-1"><ChoixDestinataire projetId={projetId} contacts={contacts} onChoisir={(t) => maj('destinataire', t)} /></div>
             <Textarea id="dest" rows={4} value={form.destinataire} onChange={(e) => maj('destinataire', e.target.value)} />
           </div>
           <div>
@@ -204,7 +207,12 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
             <Textarea id="exp" rows={4} value={form.expediteur} onChange={(e) => maj('expediteur', e.target.value)} />
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-4">
+        <div>
+          <Label htmlFor="copies">Copies</Label>
+          <div className="mb-1.5 mt-1 md:max-w-sm"><ChoixCopies projetId={projetId} contacts={contacts} destinataire={form.destinataire} copies={form.copies} onChange={(t) => maj('copies', t)} /></div>
+          <Textarea id="copies" rows={2} value={form.copies} onChange={(e) => maj('copies', e.target.value)} placeholder="Organisation (Prénom Nom) ; …" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
             <Label htmlFor="lieu">Lieu</Label>
             <Input id="lieu" value={form.lieu} onChange={(e) => maj('lieu', e.target.value)} />
@@ -219,10 +227,6 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
           <div>
             <Label htmlFor="date">Date d’envoi</Label>
             <Input id="date" type="date" value={toInputDate(form.dateEnvoi)} onChange={(e) => maj('dateEnvoi', e.target.value || null)} />
-          </div>
-          <div>
-            <Label htmlFor="copies">Copies</Label>
-            <Input id="copies" value={form.copies} onChange={(e) => maj('copies', e.target.value)} />
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -259,7 +263,7 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
               <div className="font-bold">{form.signataireNom}</div>
               <div>{form.signataireFonction}</div>
             </div>
-            {form.copies && <div className="mt-4 text-xs text-vinci-texte-secondaire">Copies : {form.copies}</div>}
+            {form.copies && <div className="mt-4 whitespace-pre-line text-xs text-vinci-texte-secondaire">Copies : {form.copies}</div>}
           </div>
         </DialogContent>
       </Dialog>
