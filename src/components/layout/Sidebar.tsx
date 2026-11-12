@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FileText, FolderOpen, Home, LayoutDashboard, LogOut, PlusCircle, UsersRound, X, type LucideIcon } from 'lucide-react'
+import { BarChart3, FileText, FolderOpen, Home, LogOut, PlusCircle, UsersRound, X, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { deconnexion } from '@/actions/auth'
 import { Logo } from '@/components/layout/Logo'
@@ -15,7 +15,6 @@ const LIENS: Lien[] = [
   { href: '/accueil', label: 'Accueil', icon: Home },
   { href: '/projets?nouveau=1', label: 'Nouveau projet', icon: PlusCircle },
   { href: '/projets', label: 'Projets', icon: FolderOpen },
-  { href: '/tableau-de-bord', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/modeles-courriers', label: 'Modèles de courriers', icon: FileText },
 ]
 
@@ -24,7 +23,11 @@ type Props = { open: boolean; onClose: () => void; utilisateur: UtilisateurShell
 export function Sidebar({ open, onClose, utilisateur }: Props) {
   const pathname = usePathname()
   const liens: Lien[] = utilisateur.estAdmin
-    ? [...LIENS, { href: '/comptes', label: 'Comptes', icon: UsersRound, badge: utilisateur.demandesEnAttente }]
+    ? [
+        ...LIENS,
+        { href: '/comptes', label: 'Comptes', icon: UsersRound, badge: utilisateur.demandesEnAttente },
+        { href: '/analyse', label: 'Analyse', icon: BarChart3 },
+      ]
     : LIENS
 
   return (

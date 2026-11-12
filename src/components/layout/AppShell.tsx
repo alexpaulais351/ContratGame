@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Disclaimer } from './Disclaimer'
 import { Ruban } from './Ruban'
 import { Sidebar, type UtilisateurShell } from './Sidebar'
+import { SuiviVisites } from './SuiviVisites'
 
 /** Coquille connectée : sidebar + bandeau illustré en haut (Profil) + avertissement + contenu défilant. */
 export function AppShell({ children, utilisateur }: { children: React.ReactNode; utilisateur: UtilisateurShell }) {
   const [menuOuvert, setMenuOuvert] = useState(false)
   return (
     <div className="flex h-screen overflow-hidden">
+      <SuiviVisites />
       <Sidebar open={menuOuvert} onClose={() => setMenuOuvert(false)} utilisateur={utilisateur} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Ruban
