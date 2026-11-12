@@ -49,7 +49,7 @@ export function ProfilForm({ initial }: { initial: ProfilSociete }) {
         nomSociete: f.nomSociete ?? '',
         adresseSociete: f.adresseSociete ?? '',
         telSociete: f.telSociete ?? '',
-        faxSociete: f.faxSociete ?? '',
+        faxSociete: '', // champ fax retiré de l'interface
         certifications: f.certifications ?? '',
       })
       if (!res.success) return void toast.error(res.error)
@@ -121,13 +121,9 @@ export function ProfilForm({ initial }: { initial: ProfilSociete }) {
             <Label>Adresse</Label>
             <Textarea rows={2} {...txt('adresseSociete')} />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 sm:col-span-2">
             <Label>Téléphone</Label>
             <Input {...txt('telSociete')} />
-          </div>
-          <div className="space-y-1">
-            <Label>Fax</Label>
-            <Input {...txt('faxSociete')} />
           </div>
           <div className="space-y-1 sm:col-span-2">
             <Label>Certifications</Label>
