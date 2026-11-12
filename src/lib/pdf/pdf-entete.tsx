@@ -1,4 +1,4 @@
-import { Circle, Image, Path, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer'
+import { Image, Path, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer'
 import type { Style } from '@react-pdf/types'
 import { PDF_COULEURS } from './format'
 import type { ProfilSociete } from '@/stores/profil'
@@ -82,11 +82,8 @@ export function LogoPDF({ size = 30 }: { size?: number }) {
     <Svg viewBox="-4 -4 128 128" width={size} height={size}>
       <Rect x={-4} y={-4} width={128} height={128} rx={28} fill={W} />
       <Rect width={120} height={120} rx={24} fill={B} />
-      <Path d="M30 18 h36 l18 18 v60 a6 6 0 0 1-6 6 h-48 a6 6 0 0 1-6-6 v-72 a6 6 0 0 1 6-6z" fill="none" stroke={W} strokeWidth={7} strokeLinejoin="round" />
-      <Path d="M66 18 v18 h18" fill="none" stroke={W} strokeWidth={7} strokeLinejoin="round" />
-      <Path d="M38 46 h22 M38 60 h34 M38 74 h16" stroke={W} strokeWidth={5} strokeLinecap="round" />
-      <Circle cx={84} cy={84} r={20} fill={PDF_COULEURS.rouge} stroke={B} strokeWidth={4} />
-      <Path d="M75 84 l6 6 l12-13" stroke={W} strokeWidth={5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M25.7 55.4 L66.6 23.4 L81.4 42.3 L40.4 74.3 Z M19.9 56.1 L27.0 50.6 L45.4 74.2 L38.3 79.8 Z M61.6 23.5 L68.7 17.9 L87.2 41.6 L80.1 47.1 Z M57.8 60.8 L64.1 55.8 L91.2 90.5 L84.9 95.4 Z" fill={W} />
+      <Rect x={58} y={88} width={46} height={12} rx={3} fill={PDF_COULEURS.rouge} />
     </Svg>
   )
 }
