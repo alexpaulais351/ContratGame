@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ArrowLeft, BookOpen, Download, Eye, Save, Send, Trash2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, Download, Eye, FileDown, Save, Send, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -86,6 +86,15 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
       )
     })
 
+  const exporterWord = () =>
+    exportAvecGuard(async () => {
+      await sauver()
+      const [{ telechargerCourrierWord }, { nomFichierSur }] = await Promise.all([
+        import('@/lib/word/courrier-docx'), import('@/lib/pdf/format'),
+      ])
+      await telechargerCourrierWord(form, profil, `Courrier_${nomFichierSur(form.reference || 'sans_ref')}`)
+    })
+
   const ouvrirEnvoi = async () => {
     if (!(await sauver())) return
     setDateEnvoi(toInputDate(form.dateEnvoi ?? new Date()))
@@ -140,6 +149,7 @@ export function EditeurCourrier({ initial, nomProjet }: { initial: CourrierDTO; 
           <Button variant="outline" className="btn-toolbar" onClick={() => void sauver()}><Save className="mr-1 h-4 w-4" />Enregistrer</Button>
           <Button variant="outline" className="btn-toolbar" onClick={() => setApercu(true)}><Eye className="mr-1 h-4 w-4" />Aperçu</Button>
           <Button variant="outline" className="btn-toolbar" onClick={exporter} disabled={isExporting}><Download className="mr-1 h-4 w-4" />{isExporting ? 'Export…' : 'Export PDF'}</Button>
+          <Button variant="outline" className="btn-toolbar" onClick={exporterWord} disabled={isExporting}><FileDown className="mr-1 h-4 w-4" />Exporter en Word</Button>
           {!envoye && <Button onClick={ouvrirEnvoi}><Send className="mr-1 h-4 w-4" />Marquer envoyé</Button>}
           <Button variant="destructive" onClick={() => setDlgSuppr(true)}><Trash2 className="mr-1 h-4 w-4" />Supprimer</Button>
         </div>
