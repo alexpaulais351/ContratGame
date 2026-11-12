@@ -72,7 +72,7 @@ function GrilleMatriceBase(p: Props) {
 
   return (
     <div className="max-h-[calc(100vh-220px)] overflow-auto rounded-md border border-vinci-gris-bordure bg-white">
-      <table className="w-max min-w-full border-separate border-spacing-0 text-[14px]">
+      <table className="w-max min-w-full border-separate border-spacing-0 text-[13px]">
         <thead>
           <tr>
             <th className={cn(TD, COL_CRITERE, 'sticky top-0 z-30 bg-vinci-bleu text-left font-bold text-white')}>Critère</th>
@@ -80,7 +80,7 @@ function GrilleMatriceBase(p: Props) {
             {fournisseurs.map((f, i) => (
               <th key={f.id} className={cn(TD, 'sticky top-0 z-20 min-w-[190px] bg-vinci-bleu text-left font-bold text-white')}>
                 <div className="flex items-center gap-1">
-                  <span className="shrink-0 rounded-sm bg-vinci-bleu-fonce px-1 text-[12px] tabular-nums" title="Rang (ordre des colonnes)">
+                  <span className="shrink-0 rounded-sm bg-vinci-bleu-fonce px-1 text-[11px] tabular-nums" title="Rang (ordre des colonnes)">
                     {i + 1}
                   </span>
                   <input
@@ -125,7 +125,7 @@ function GrilleMatriceBase(p: Props) {
                       <button
                         type="button"
                         onClick={() => p.onAjouterCritere(s.cle)}
-                        className="flex items-center gap-1 rounded-sm px-1 py-0.5 text-[12px] font-medium normal-case tracking-normal text-white/90 hover:bg-vinci-bleu-fonce"
+                        className="flex items-center gap-1 rounded-sm px-1 py-0.5 text-[11px] font-medium normal-case tracking-normal text-white/90 hover:bg-vinci-bleu-fonce"
                         title="Ajouter un critère personnalisé dans cette section"
                       >
                         <Plus className="size-3.5" /> Critère
@@ -177,7 +177,7 @@ function GrilleMatriceBase(p: Props) {
                           {sugg && sugg !== f.decision && (
                             <button
                               type="button"
-                              className="flex h-7 shrink-0 items-center gap-0.5 rounded-sm border border-vinci-gris-bordure bg-white px-1 text-[11px] text-vinci-texte-secondaire hover:border-vinci-bleu hover:text-vinci-bleu"
+                              className="flex h-7 shrink-0 items-center gap-0.5 rounded-sm border border-vinci-gris-bordure bg-white px-1 text-[10px] text-vinci-texte-secondaire hover:border-vinci-bleu hover:text-vinci-bleu"
                               title={`Décision suggérée : ${DECISIONS[sugg].label} — cliquer pour l'appliquer`}
                               onClick={() => p.onFournisseur(f.id, { decision: sugg })}
                             >
@@ -203,7 +203,7 @@ function GrilleMatriceBase(p: Props) {
                             value={c.libelle}
                             onChange={(e) => p.onCritere(c.id, { libelle: e.target.value })}
                           />
-                          <span className="shrink-0 text-[11px] text-vinci-gris" title="Type de critère">
+                          <span className="shrink-0 text-[10px] text-vinci-gris" title="Type de critère">
                             {LIBELLE_TYPE[c.type]}
                           </span>
                           <button
@@ -316,7 +316,7 @@ function GrilleMatriceBase(p: Props) {
                     {s ? `${s.classement}${s.classement === 1 ? 'er' : 'e'}` : '—'}
                   </span>
                   {s && (s.nbNcMajeures > 0 || s.nbNcNegociables > 0) && (
-                    <div className="mt-0.5 text-[11px] font-normal text-white/80">
+                    <div className="mt-0.5 text-[10px] font-normal text-white/80">
                       {s.nbNcMajeures > 0 && `${s.nbNcMajeures} NC majeure${s.nbNcMajeures > 1 ? 's' : ''}`}
                       {s.nbNcMajeures > 0 && s.nbNcNegociables > 0 && ' · '}
                       {s.nbNcNegociables > 0 && `${s.nbNcNegociables} négociable${s.nbNcNegociables > 1 ? 's' : ''}`}

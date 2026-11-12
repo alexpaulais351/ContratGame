@@ -10,7 +10,7 @@ const config: Config = {
         condensed: ['"VINCI Sans Condensed"', '"VINCI Sans"', 'Arial', 'sans-serif'],
         serif: ['"VINCI Serif"', 'Georgia', 'serif'],
       },
-      fontSize: { base: ['15px', '22px'] },
+      fontSize: { base: ['13.5px', '20px'] },
       colors: {
         vinci: {
           bleu: '#004489',
