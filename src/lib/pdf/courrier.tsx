@@ -38,7 +38,7 @@ const s = StyleSheet.create({
 export function CourrierPDF({ courrier: c, profil }: { courrier: CourrierPDFData; profil: ProfilSociete | null; nomProjet?: string }) {
   const dateTxt = c.dateEnvoi ? formatDateFR(c.dateEnvoi) : formatDateFR(new Date())
   const lieuDate = c.lieu ? `${c.lieu}, le ${dateTxt}` : `Le ${dateTxt}`
-  const contact = [profil?.telSociete ? `Tél. : ${profil.telSociete}` : '', profil?.faxSociete ? `Fax : ${profil.faxSociete}` : ''].filter(Boolean).join('   ')
+  const contact = profil?.telSociete ? `Tél. : ${profil.telSociete}` : ''
   const paragraphes = (c.corps || '').split('\n')
   return (
     <Document title={`Courrier ${c.reference}`}>
