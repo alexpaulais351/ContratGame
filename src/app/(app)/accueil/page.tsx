@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { FileText, FolderOpen, LayoutDashboard, PlusCircle, UsersRound, type LucideIcon } from 'lucide-react'
+import { BarChart3, FileText, FolderOpen, PlusCircle, UsersRound, type LucideIcon } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { formatDateFR } from '@/lib/utils'
@@ -30,7 +30,6 @@ export default async function AccueilPage() {
   const actions: Action[] = [
     { href: '/projets?nouveau=1', titre: 'Nouveau projet', texte: 'Créer un projet et choisir ses modules.', icon: PlusCircle },
     { href: '/projets', titre: 'Mes projets', texte: 'Retrouver et reprendre vos projets en cours.', icon: FolderOpen },
-    { href: '/tableau-de-bord', titre: 'Tableau de bord', texte: 'Synthèse financière de tous vos projets.', icon: LayoutDashboard },
     { href: '/modeles-courriers', titre: 'Modèles de courriers', texte: 'Réserves, mise en demeure, prolongation de délai…', icon: FileText },
     ...(user.role === 'admin'
       ? [
@@ -40,6 +39,7 @@ export default async function AccueilPage() {
             texte: demandes ? `${demandes} demande${demandes > 1 ? 's' : ''} de compte en attente.` : 'Valider les demandes et gérer les comptes.',
             icon: UsersRound,
           },
+          { href: '/analyse', titre: 'Analyse', texte: 'Fréquentation, comptes actifs et projets les plus consultés.', icon: BarChart3 },
         ]
       : []),
   ]
