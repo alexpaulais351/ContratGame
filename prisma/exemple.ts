@@ -3,6 +3,9 @@ import { couleursCategorie } from '../src/lib/design-tokens'
 import { CATEGORIES_SYSTEME } from '../src/lib/categories-systeme'
 import { seedModules } from './seed-modules'
 import { completerJournalExemple, completerPeriodesExemple } from './seed/journal'
+import { completerCourriersExemple } from './seed/courriers'
+import { completerSousTraitantsExemple } from './seed/sous-traitants'
+import { completerMatricesExemple } from './seed/matrice'
 
 /** Nom du projet d'exemple (une copie personnelle par utilisateur). */
 export const NOM_PROJET_EXEMPLE = '[EXEMPLE] Groupe scolaire Les Tilleuls – construction neuve'
@@ -42,11 +45,14 @@ export async function assurerProjetExemple(prisma: PrismaClient, userId: string)
 /** Ajoute aux projets d'exemple existants les données de démo apparues depuis (sans rien supprimer). */
 export async function completerProjetsExemple(prisma: PrismaClient) {
   const projets = await prisma.projet.findMany({ where: { name: NOM_PROJET_EXEMPLE }, select: { id: true } })
-  let ajouts = 0
-  let periodes = 0
+  const r = { projets: projets.length, evenementsAjoutes: 0, periodesAjoutees: 0, courriersAjoutes: 0, sousTraitantsAjoutes: 0, matricesAjoutees: 0 }
   for (const p of projets) {
-    ajouts += await completerJournalExemple(prisma, p.id)
-    periodes += await completerPeriodesExemple(prisma, p.id)
+    r.evenementsAjoutes += await completerJournalExemple(prisma, p.id)
+    r.periodesAjoutees += await completerPeriodesExemple(prisma, p.id)
+    // après le journal : les courriers envoyés se rattachent aux événements « Contrat » existants
+    r.courriersAjoutes += await completerCourriersExemple(prisma, p.id)
+    r.sousTraitantsAjoutes += await completerSousTraitantsExemple(prisma, p.id)
+    r.matricesAjoutees += await completerMatricesExemple(prisma, p.id)
   }
-  return { projets: projets.length, evenementsAjoutes: ajouts, periodesAjoutees: periodes }
+  return r
 }
