@@ -1,15 +1,17 @@
 import { VINCI } from '@/lib/design-tokens'
 
-/** Logo Contrat Game : document + coche (contrat validé). */
+/** Logo Contrat Game : marteau du juge (base juridique) sur socle rouge. */
 export function Logo({ size = 40, className, title = 'Contrat Game' }: { size?: number; className?: string; title?: string }) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} className={className} role="img" aria-label={title}>
-      <rect width="120" height="120" rx="24" fill={VINCI.bleu} />
-      <path d="M30 18 h36 l18 18 v60 a6 6 0 0 1-6 6 h-48 a6 6 0 0 1-6-6 v-72 a6 6 0 0 1 6-6z" fill="none" stroke={VINCI.blanc} strokeWidth="7" strokeLinejoin="round" />
-      <path d="M66 18 v18 h18" fill="none" stroke={VINCI.blanc} strokeWidth="7" strokeLinejoin="round" />
-      <path d="M38 46 h22 M38 60 h34 M38 74 h16" stroke={VINCI.blanc} strokeWidth="5" strokeLinecap="round" />
-      <circle cx="84" cy="84" r="20" fill={VINCI.rouge} stroke={VINCI.bleu} strokeWidth="4" />
-      <path d="M75 84 l6 6 l12-13" stroke={VINCI.blanc} strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <rect width="120" height="120" rx="26" fill={VINCI.bleu} />
+      <g transform="rotate(-38 56 52)" fill={VINCI.blanc}>
+        <rect x="30" y="36" width="52" height="24" rx="5" />
+        <rect x="25" y="33" width="9" height="30" rx="3" />
+        <rect x="78" y="33" width="9" height="30" rx="3" />
+        <rect x="52" y="60" width="8" height="44" rx="3" />
+      </g>
+      <rect x="58" y="88" width="46" height="12" rx="3" fill={VINCI.rouge} />
     </svg>
   )
 }
