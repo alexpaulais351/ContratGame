@@ -1,8 +1,7 @@
-import { Disclaimer } from '@/components/layout/Disclaimer'
 import { ByEbgc } from '@/components/layout/ByEbgc'
 import { Logo } from '@/components/layout/Logo'
 
-/** Coquille hors connexion (connexion, compte en attente) : en-tête bleu + bandeau. */
+/** Coquille hors connexion (connexion, compte en attente) : en-tête bleu. */
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
@@ -13,7 +12,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </span>
         <ByEbgc hauteur="h-6" />
       </header>
-      <Disclaimer />
       <main className="flex-1 p-4 sm:p-6">{children}</main>
     </div>
   )
