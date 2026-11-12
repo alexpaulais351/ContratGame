@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useState, useTransition } from 'react'
-import { CalendarRange, FileDown, Plus, Tags } from 'lucide-react'
+import { CalendarRange, FileDown, GanttChart, Plus, Tags } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -13,7 +13,9 @@ import { ExportFriseDialog } from './ExportFriseDialog'
 import { FriseRendu } from './FriseRendu'
 import { JournalOnglets } from './JournalOnglets'
 import { ListeEvenements } from './ListeEvenements'
+import { PeriodesDialog, type CiblePeriodes } from './PeriodesDialog'
 import { calculerFrise } from './placements'
+import type { PeriodeDTO } from './periodes'
 import { COULEURS_SANS_CATEGORIE, SANS_CATEGORIE, jourFR, type CategorieDTO, type EvenementDTO } from './types'
 
 type Props = {
@@ -21,11 +23,16 @@ type Props = {
   nomProjet: string
   categories: CategorieDTO[]
   evenements: EvenementDTO[]
+  periodes: PeriodeDTO[]
 }
 
-export function JournalClient({ projetId, nomProjet, categories, evenements: initial }: Props) {
+export function JournalClient({ projetId, nomProjet, categories, evenements: initial, periodes: periodesInitiales }: Props) {
   const [evenements, setEvenements] = useState(initial)
   useEffect(() => setEvenements(initial), [initial])
+  const [periodes, setPeriodes] = useState(periodesInitiales)
+  useEffect(() => setPeriodes(periodesInitiales), [periodesInitiales])
+  const [periodesOuvert, setPeriodesOuvert] = useState(false)
+  const [ciblePeriodes, setCiblePeriodes] = useState<CiblePeriodes>({ mode: 'liste' })
 
   const [filtres, setFiltres] = useState<string[]>([])
   const [edition, setEdition] = useState<{ ouvert: boolean; evenement: EvenementDTO | null }>({ ouvert: false, evenement: null })
@@ -46,10 +53,24 @@ export function JournalClient({ projetId, nomProjet, categories, evenements: ini
     [evenements, filtres_, categories],
   )
   const surFrise = useMemo(() => visibles.filter((e) => e.afficherFrise), [visibles])
+  const periodesFrise = useMemo(() => periodes.filter((p) => p.afficherFrise), [periodes])
   const disposition = useMemo(
-    () => calculerFrise(surFrise.map((e) => ({ id: e.id, jour: e.jour, titre: e.titre, description: e.description }))),
-    [surFrise],
+    () =>
+      calculerFrise(
+        surFrise.map((e) => ({ id: e.id, jour: e.jour, titre: e.titre, description: e.description })),
+        { periodes: periodesFrise.map((p) => ({ id: p.id, debut: p.debut, fin: p.fin })) },
+      ),
+    [surFrise, periodesFrise],
   )
+  const fenetre = useMemo(() => {
+    const jours = [...surFrise.map((e) => e.jour), ...periodesFrise.flatMap((p) => [p.debut, p.fin])].sort()
+    return jours.length ? { min: jours[0], max: jours[jours.length - 1] } : null
+  }, [surFrise, periodesFrise])
+
+  const ouvrirPeriodes = (cible: CiblePeriodes) => {
+    setCiblePeriodes(cible)
+    setPeriodesOuvert(true)
+  }
 
   function basculerFiltre(cle: string) {
     setFiltres((f) => (f.includes(cle) ? f.filter((x) => x !== cle) : [...f, cle]))
@@ -102,7 +123,15 @@ export function JournalClient({ projetId, nomProjet, categories, evenements: ini
           <Button variant="outline" className="btn-toolbar" onClick={() => setCategoriesOuvert(true)}>
             <Tags /> Catégories
           </Button>
-          <Button variant="outline" className="btn-secondaire" onClick={() => setExportOuvert(true)} disabled={surFrise.length === 0}>
+          <Button variant="outline" className="btn-toolbar" onClick={() => ouvrirPeriodes({ mode: 'liste' })}>
+            <GanttChart /> Périodes{periodes.length > 0 ? ` (${periodes.length})` : ''}
+          </Button>
+          <Button
+            variant="outline"
+            className="btn-secondaire"
+            onClick={() => setExportOuvert(true)}
+            disabled={surFrise.length === 0 && periodesFrise.length === 0}
+          >
             <FileDown /> Exporter la frise (PDF)
           </Button>
           <Button onClick={() => ouvrirEdition(null)}>
@@ -152,19 +181,26 @@ export function JournalClient({ projetId, nomProjet, categories, evenements: ini
           <h3 className="inline-flex items-center gap-2 font-bold text-vinci-bleu">
             <CalendarRange className="h-4 w-4" /> Frise chronologique
           </h3>
-          {surFrise.length > 0 && (
+          {fenetre && (
             <span className="text-xs text-vinci-texte-secondaire">
-              {jourFR(surFrise[surFrise.length - 1].jour)} → {jourFR(surFrise[0].jour)}
+              {jourFR(fenetre.min)} → {jourFR(fenetre.max)}
             </span>
           )}
         </div>
-        {surFrise.length === 0 ? (
+        {surFrise.length === 0 && periodesFrise.length === 0 ? (
           <p className="p-6 text-center text-sm text-vinci-texte-secondaire">
             Aucun événement à afficher sur la frise (cochez « Frise » dans la liste ou ajustez les filtres).
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <FriseRendu disposition={disposition} evenements={surFrise} categories={categories} onSelect={(ev) => ouvrirEdition(ev)} />
+            <FriseRendu
+              disposition={disposition}
+              evenements={surFrise}
+              categories={categories}
+              periodes={periodesFrise}
+              onSelect={(ev) => ouvrirEdition(ev)}
+              onSelectPeriode={(p) => ouvrirPeriodes({ mode: 'edition', periode: p })}
+            />
           </div>
         )}
       </section>
@@ -191,6 +227,14 @@ export function JournalClient({ projetId, nomProjet, categories, evenements: ini
         evenement={edition.evenement}
       />
       <CategoriesDialog open={categoriesOuvert} onOpenChange={setCategoriesOuvert} projetId={projetId} categories={categories} evenements={evenements} />
+      <PeriodesDialog
+        open={periodesOuvert}
+        onOpenChange={setPeriodesOuvert}
+        projetId={projetId}
+        periodes={periodes}
+        cible={ciblePeriodes}
+        onPeriodesChange={setPeriodes}
+      />
       <ExportFriseDialog
         open={exportOuvert}
         onOpenChange={setExportOuvert}
@@ -198,6 +242,7 @@ export function JournalClient({ projetId, nomProjet, categories, evenements: ini
         nomProjet={nomProjet}
         evenements={surFrise}
         categories={categories}
+        periodes={periodesFrise}
       />
       <Dialog open={!!aSupprimer} onOpenChange={(o) => !o && setASupprimer(null)}>
         <DialogContent className="max-w-md">

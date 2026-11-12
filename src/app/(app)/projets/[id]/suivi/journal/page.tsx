@@ -3,10 +3,11 @@ import { CATEGORIES_SYSTEME } from '@/lib/categories-systeme'
 import { getProjetPourPage } from '@/lib/auth-helpers'
 import { JournalClient } from '@/components/modules/journal/JournalClient'
 import { versJour, type CategorieDTO, type EvenementDTO } from '@/components/modules/journal/types'
+import type { PeriodeDTO } from '@/components/modules/journal/periodes'
 
 export default async function JournalPage({ params }: { params: { id: string } }) {
   const { projet } = await getProjetPourPage(params.id)
-  const [categories, evenements] = await Promise.all([
+  const [categories, evenements, periodes] = await Promise.all([
     prisma.categorieEvenement.findMany({
       where: { projetId: projet.id },
       orderBy: [{ estSysteme: 'desc' }, { nom: 'asc' }],
@@ -16,6 +17,10 @@ export default async function JournalPage({ params }: { params: { id: string } }
       where: { projetId: projet.id },
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       include: { fichiers: { select: { id: true, nom: true, type: true, taille: true } } },
+    }),
+    prisma.periodeFrise.findMany({
+      where: { projetId: projet.id },
+      orderBy: [{ dateDebut: 'asc' }, { dateFin: 'asc' }, { ordre: 'asc' }],
     }),
   ])
 
@@ -40,5 +45,17 @@ export default async function JournalPage({ params }: { params: { id: string } }
     fichiers: e.fichiers,
   }))
 
-  return <JournalClient projetId={projet.id} nomProjet={projet.name} categories={cats} evenements={evs} />
+  const pers: PeriodeDTO[] = periodes.map((p) => ({
+    id: p.id,
+    titre: p.titre,
+    sousTitre: p.sousTitre,
+    debut: versJour(p.dateDebut),
+    fin: versJour(p.dateFin),
+    couleur: p.couleur,
+    afficherFrise: p.afficherFrise,
+    zoneFond: p.zoneFond,
+    ordre: p.ordre,
+  }))
+
+  return <JournalClient projetId={projet.id} nomProjet={projet.name} categories={cats} evenements={evs} periodes={pers} />
 }

@@ -14,6 +14,7 @@ import { nomFichierSur } from '@/lib/pdf/format'
 import { FriseRendu } from './FriseRendu'
 import { chargerFichier } from './fichiers'
 import type { MiseEnPageFrise, ImageJointe, ItemLegende } from './export-frise'
+import { sousTitreAffiche, type PeriodeDTO } from './periodes'
 import { COULEURS_SANS_CATEGORIE, couleursDe, jourFR, nomCategorie, type CategorieDTO, type EvenementDTO } from './types'
 
 type Props = {
@@ -24,11 +25,13 @@ type Props = {
   /** événements actuellement affichés sur la frise (filtres appliqués) */
   evenements: EvenementDTO[]
   categories: CategorieDTO[]
+  /** périodes affichées sur la frise (afficherFrise) */
+  periodes?: PeriodeDTO[]
 }
 
-type RenduExport = { miseEnPage: MiseEnPageFrise; evenements: EvenementDTO[] }
+type RenduExport = { miseEnPage: MiseEnPageFrise; evenements: EvenementDTO[]; periodes: PeriodeDTO[] }
 
-export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, evenements, categories }: Props) {
+export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, evenements, categories, periodes = [] }: Props) {
   const { exportAvecGuard, isExporting } = useExportPDF()
   const profil = useProfilStore((s) => s.profil)
   const [debut, setDebut] = useState('')
@@ -37,9 +40,9 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
   const noeud = useRef<HTMLDivElement>(null)
 
   const bornes = useMemo(() => {
-    const jours = evenements.map((e) => e.jour).sort()
+    const jours = [...evenements.map((e) => e.jour), ...periodes.flatMap((p) => [p.debut, p.fin])].sort()
     return { min: jours[0] ?? '', max: jours[jours.length - 1] ?? '' }
-  }, [evenements])
+  }, [evenements, periodes])
 
   // pré-remplissage min / max à l'ouverture
   useEffect(() => {
@@ -53,6 +56,12 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
     () => (periodeValide ? evenements.filter((e) => e.jour >= debut && e.jour <= fin) : []),
     [evenements, debut, fin, periodeValide],
   )
+  // périodes qui intersectent la plage (elles seront rognées à [debut, fin] sur la frise)
+  const periodesDansPlage = useMemo(
+    () => (periodeValide ? periodes.filter((p) => p.debut <= fin && p.fin >= debut) : []),
+    [periodes, debut, fin, periodeValide],
+  )
+  const exportable = dansPeriode.length > 0 || periodesDansPlage.length > 0
   const nbImages = dansPeriode.reduce((n, e) => n + e.fichiers.filter((f) => f.type.startsWith('image/')).length, 0)
 
   function legende(evs: EvenementDTO[]): ItemLegende[] {
@@ -63,20 +72,22 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
 
   function exporter() {
     void exportAvecGuard(async () => {
-      if (!periodeValide || dansPeriode.length === 0) {
-        toast.error('Aucun événement dans la période')
+      if (!periodeValide || !exportable) {
+        toast.error('Aucun événement ni période dans la plage')
         return
       }
       const evs = dansPeriode
+      const pers = periodesDansPlage
       const { calculerMiseEnPage, genererFrisePDF } = await import('./export-frise')
       const miseEnPage = calculerMiseEnPage(
         evs.map((e) => ({ id: e.id, jour: e.jour, titre: e.titre, description: e.description })),
         legende(evs),
         debut,
         fin,
+        pers.map((p) => ({ id: p.id, debut: p.debut, fin: p.fin })),
       )
       // Re-rendu synchrone de la frise filtrée, étalée et recadrée
-      flushSync(() => setRendu({ miseEnPage, evenements: evs }))
+      flushSync(() => setRendu({ miseEnPage, evenements: evs, periodes: pers }))
       try {
         await new Promise<void>((r) => requestAnimationFrame(() => r()))
         if (!noeud.current) throw new Error('Rendu de la frise indisponible')
@@ -98,6 +109,9 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
               couleurs: couleursDe(e, categories),
               piecesJointes: e.fichiers.map((f) => f.nom),
             })),
+          periodes: [...pers]
+            .sort((a, b) => a.debut.localeCompare(b.debut) || a.fin.localeCompare(b.fin))
+            .map((p) => ({ titre: p.titre, sousTitre: sousTitreAffiche(p), debut: p.debut, fin: p.fin, couleur: p.couleur })),
           chargerImages: async () => {
             const res: ImageJointe[] = []
             for (const e of evs) {
@@ -144,6 +158,12 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
             ) : (
               <>
                 <strong>{dansPeriode.length}</strong> événement{dansPeriode.length > 1 ? 's' : ''} du {jourFR(debut)} au {jourFR(fin)}
+                {periodesDansPlage.length > 0 && (
+                  <>
+                    {' '}
+                    · <strong>{periodesDansPlage.length}</strong> période{periodesDansPlage.length > 1 ? 's' : ''}
+                  </>
+                )}
                 {nbImages > 0 && (
                   <>
                     {' '}
@@ -157,7 +177,7 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
             <Button variant="outline" className="btn-secondaire" onClick={() => onOpenChange(false)} disabled={isExporting}>
               Annuler
             </Button>
-            <Button onClick={exporter} disabled={isExporting || !periodeValide || dansPeriode.length === 0}>
+            <Button onClick={exporter} disabled={isExporting || !periodeValide || !exportable}>
               {isExporting ? <Loader2 className="animate-spin" /> : <FileDown />}
               {isExporting ? 'Export en cours…' : 'Exporter'}
             </Button>
@@ -174,6 +194,8 @@ export function ExportFriseDialog({ open, onOpenChange, projetId, nomProjet, eve
               disposition={rendu.miseEnPage.disposition}
               evenements={rendu.evenements}
               categories={categories}
+              periodes={rendu.periodes}
+              coupes={rendu.miseEnPage.plan.coupes}
               recadrage={{ debutX: rendu.miseEnPage.disposition.contenuGauche, finX: rendu.miseEnPage.disposition.contenuDroite }}
             />
           </div>,

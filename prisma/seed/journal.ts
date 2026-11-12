@@ -271,6 +271,69 @@ export async function completerJournalExemple(prisma: PrismaClient, projetId: st
   return manquants.length
 }
 
+// ---------------------------------------------------------------------------
+// Périodes de la frise (barres horizontales sur une plage de dates)
+// ---------------------------------------------------------------------------
+
+type Periode = {
+  titre: string
+  sousTitre: string | null
+  debut: string
+  fin: string
+  /** clé de palette (src/components/modules/journal/periodes.ts) */
+  couleur: 'bleu' | 'rouge' | 'jaune' | 'vert' | 'orange' | 'violet' | 'bleuCiel' | 'rose' | 'gris'
+  zoneFond?: boolean
+}
+
+/** Périodes cohérentes avec les événements de démo (groupe scolaire, année 2026). */
+function periodesExemple(): Periode[] {
+  return [
+    { titre: 'Période de préparation', sousTitre: '2 mois · 05/01 → 27/02/2026', debut: '2026-01-05', fin: '2026-02-27', couleur: 'bleu' },
+    { titre: 'Délai VISA EXE structure', sousTitre: 'Indice A du 14/01 → VISA favorable indice B', debut: '2026-01-14', fin: '2026-05-21', couleur: 'rouge' },
+    { titre: 'Phase gros œuvre', sousTitre: 'Fondations → réception partielle · 3,5 mois', debut: '2026-03-02', fin: '2026-06-15', couleur: 'jaune' },
+    { titre: 'Fermeture estivale', sousTitre: null, debut: '2026-08-03', fin: '2026-08-14', couleur: 'gris', zoneFond: true },
+    { titre: 'Délai de levée des réserves', sousTitre: 'Réception du 11/12/2026 + 30 jours', debut: '2026-12-11', fin: '2027-01-09', couleur: 'rouge', zoneFond: true },
+  ]
+}
+
+async function creerPeriodes(prisma: PrismaClient, projetId: string, periodes: Periode[]) {
+  const dernier = await prisma.periodeFrise.aggregate({ where: { projetId }, _max: { ordre: true } })
+  let ordre = (dernier._max.ordre ?? -1) + 1
+  for (const p of periodes) {
+    await prisma.periodeFrise.create({
+      data: {
+        projetId,
+        titre: p.titre,
+        sousTitre: p.sousTitre,
+        dateDebut: jour(p.debut),
+        dateFin: jour(p.fin),
+        couleur: p.couleur,
+        afficherFrise: true,
+        zoneFond: p.zoneFond ?? false,
+        ordre: ordre++,
+      },
+    })
+  }
+}
+
+/** Périodes de démo de la frise (projet neuf) : remplace les périodes de démo du même titre. */
+export async function seedPeriodesExemple(prisma: PrismaClient, projetId: string) {
+  const periodes = periodesExemple()
+  await prisma.periodeFrise.deleteMany({ where: { projetId, titre: { in: periodes.map((p) => p.titre) } } })
+  await creerPeriodes(prisma, projetId, periodes)
+}
+
+/**
+ * Complète un projet d'exemple existant : ajoute les périodes de démo manquantes (par titre),
+ * sans rien supprimer ni modifier. Retourne le nombre de périodes ajoutées.
+ */
+export async function completerPeriodesExemple(prisma: PrismaClient, projetId: string) {
+  const existants = new Set((await prisma.periodeFrise.findMany({ where: { projetId }, select: { titre: true } })).map((p) => p.titre))
+  const manquantes = periodesExemple().filter((p) => !existants.has(p.titre))
+  if (manquantes.length) await creerPeriodes(prisma, projetId, manquantes)
+  return manquantes.length
+}
+
 /** Données de démo du Journal (projet neuf) + fiche écart (1 chapitre + lignes, dont une importée d'un événement). */
 export async function seedJournal(prisma: PrismaClient, projetId: string) {
   const evenements = evenementsExemple()
@@ -278,6 +341,7 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
   await prisma.evenementChantier.deleteMany({ where: { projetId, titre: { in: evenements.map((e) => e.titre) } } })
 
   const ids = await creerEvenements(prisma, projetId, evenements)
+  await seedPeriodesExemple(prisma, projetId)
 
   // Fiche écart : 1 chapitre + lignes (dont une importée depuis un événement)
   const evReseaux = evenements[4]
