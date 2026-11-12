@@ -89,7 +89,14 @@ const PAGES_FIXES: Record<string, string> = {
   '/profil': 'Profil',
   '/comptes': 'Comptes',
   '/analyse': 'Analyse',
-  '/modeles-courriers': 'Modèles de courriers',
+  '/modeles-courriers': 'Modèles de courriers (ancienne URL)',
+  '/boite-a-outils': 'Boîte à outils',
+  '/boite-a-outils/modeles-courriers': 'Boîte à outils · Modèles de courriers',
+  '/boite-a-outils/procedure-dgd': 'Boîte à outils · Procédure DGD',
+  '/boite-a-outils/delais-cles': 'Boîte à outils · Délais clés',
+  '/boite-a-outils/calculateurs': 'Boîte à outils · Calculateurs',
+  '/boite-a-outils/assurances': 'Boîte à outils · Assurances',
+  '/boite-a-outils/lexique': 'Boîte à outils · Lexique',
 }
 
 const SOUS_PAGES: Record<string, string> = {
