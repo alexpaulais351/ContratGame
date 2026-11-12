@@ -23,9 +23,9 @@
 @font-face { font-family: 'VINCI Serif'; src: url('/fonts/VinciSerif-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
 
 @layer base {
-  html { font-size: 16px; }
+  html { font-size: 14.4px; }
   html, body { background: #FFFFFF; color: #000000; }
-  body { font-size: 15px; line-height: 1.5; }
+  body { font-size: 13.5px; line-height: 1.5; }
   body { font-family: 'VINCI Sans', Arial, Helvetica, sans-serif; }
   input:focus, textarea:focus, select:focus { border-color: #004489; }
 }
@@ -36,7 +36,7 @@
   .btn-toolbar { @apply border border-vinci-gris-bordure bg-vinci-gris-clair text-black hover:bg-vinci-gris-bordure; }
 
   /* Tables VINCI (règles 5-7) */
-  .table-vinci { @apply w-full border-collapse text-[14px]; }
+  .table-vinci { @apply w-full border-collapse text-[13px]; }
   .table-vinci thead th { @apply sticky top-0 z-10 bg-vinci-bleu px-2 py-2 text-left font-bold text-white; }
   .table-vinci tbody tr:nth-child(even) { @apply bg-vinci-gris-clair; }
   .table-vinci tbody tr:nth-child(odd) { @apply bg-white; }

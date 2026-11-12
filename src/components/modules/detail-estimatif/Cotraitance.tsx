@@ -454,17 +454,17 @@ export function Cotraitance({ projetId, lignes: lignesInitiales, cotraitantsInit
                     </td>
                     <td className="num sticky bottom-0 z-10 whitespace-nowrap">
                       {formatMontant(totalDE)}
-                      <div className="text-[12px] font-normal">DE</div>
+                      <div className="text-[11px] font-normal">DE</div>
                     </td>
                     {cotraitants.map((c) => (
                       <td key={c.id} className="num sticky bottom-0 z-10 whitespace-nowrap">
                         {formatMontant(totaux.parCt.get(c.id) ?? 0)}
-                        <div className="text-[12px] font-normal">{pct(totaux.parCt.get(c.id) ?? 0)}</div>
+                        <div className="text-[11px] font-normal">{pct(totaux.parCt.get(c.id) ?? 0)}</div>
                       </td>
                     ))}
                     <td className="num sticky bottom-0 z-10 whitespace-nowrap">
                       {formatMontant(totaux.nonReparti)}
-                      <div className="text-[12px] font-normal">non réparti</div>
+                      <div className="text-[11px] font-normal">non réparti</div>
                     </td>
                   </tr>
                 </tfoot>

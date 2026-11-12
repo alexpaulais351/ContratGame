@@ -300,7 +300,7 @@ export function FicheEcartClient({
                         {c.champ === 'etude' && ev && (
                           <Link
                             href={`/projets/${projetId}/suivi/journal#ev-${ev.id}`}
-                            className="mt-0.5 inline-flex items-center gap-1 text-[12px] text-vinci-bleu-clair hover:underline"
+                            className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-vinci-bleu-clair hover:underline"
                             title="Événement du journal à l'origine de cette ligne"
                           >
                             <Link2 className="h-3 w-3" /> Journal
