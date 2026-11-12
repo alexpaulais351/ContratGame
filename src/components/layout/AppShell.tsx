@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { Ruban } from './Ruban'
 import { Disclaimer } from './Disclaimer'
 import { Sidebar, type UtilisateurShell } from './Sidebar'
 import { Topbar } from './Topbar'
@@ -7,6 +9,8 @@ import { Topbar } from './Topbar'
 /** Coquille de l'application connectée : sidebar + barre du haut + bandeau + contenu défilant. */
 export function AppShell({ children, utilisateur }: { children: React.ReactNode; utilisateur: UtilisateurShell }) {
   const [menuOuvert, setMenuOuvert] = useState(false)
+  const pathname = usePathname()
+  const accueil = pathname === '/accueil'
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar open={menuOuvert} onClose={() => setMenuOuvert(false)} utilisateur={utilisateur} />
@@ -14,6 +18,7 @@ export function AppShell({ children, utilisateur }: { children: React.ReactNode;
         <Topbar onMenuClick={() => setMenuOuvert(true)} />
         <Disclaimer />
         <div id="contenu" className="flex-1 overflow-y-auto bg-white">
+          {!accueil && <Ruban variante="bandeau" />}
           {children}
         </div>
       </div>
