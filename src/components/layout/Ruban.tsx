@@ -16,17 +16,23 @@ export function Ruban({
   titre,
   sousTitre,
   complement,
+  gauche,
+  droite,
   className,
 }: {
   variante?: 'hero' | 'bandeau'
   titre?: string
   sousTitre?: string
   complement?: React.ReactNode
+  /** contenu à gauche du titre (ex. bouton menu sur tablette) */
+  gauche?: React.ReactNode
+  /** contenu en haut à droite (ex. bouton Profil) */
+  droite?: React.ReactNode
   className?: string
 }) {
   if (variante === 'bandeau') {
     return (
-      <div className={cn('relative isolate h-24 overflow-hidden bg-vinci-bleu sm:h-28', className)}>
+      <header className={cn('relative isolate h-24 shrink-0 overflow-hidden bg-vinci-bleu sm:h-28', className)}>
         <div className="absolute inset-y-0 right-0 -z-10 h-full">
           <img src={IMAGE} alt="" aria-hidden className="h-full w-auto max-w-none" />
           <div
@@ -35,14 +41,16 @@ export function Ruban({
             style={{ background: `linear-gradient(90deg, ${BLEU}1) 0%, ${BLEU}0.75) 35%, ${BLEU}0) 100%)` }}
           />
         </div>
-        <div className="flex h-full items-center px-5 sm:px-6">
+        <div className="flex h-full items-center gap-2 px-3 sm:px-6">
+          {gauche}
           <span className="text-white">
             <span className="block text-base font-bold tracking-wide sm:text-lg">CONTRAT GAME</span>
             <span className="block text-xs text-white/85 sm:text-sm">Gestion contractuelle et financière de chantier</span>
           </span>
         </div>
+        {droite && <div className="absolute right-3 top-3 sm:right-4">{droite}</div>}
         <div aria-hidden className="absolute inset-x-0 bottom-0 h-1 bg-vinci-rouge" />
-      </div>
+      </header>
     )
   }
 
