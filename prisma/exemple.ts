@@ -2,7 +2,7 @@ import type { PrismaClient } from '@prisma/client'
 import { couleursCategorie } from '../src/lib/design-tokens'
 import { CATEGORIES_SYSTEME } from '../src/lib/categories-systeme'
 import { seedModules } from './seed-modules'
-import { completerJournalExemple } from './seed/journal'
+import { completerJournalExemple, completerPeriodesExemple } from './seed/journal'
 
 /** Nom du projet d'exemple (une copie personnelle par utilisateur). */
 export const NOM_PROJET_EXEMPLE = '[EXEMPLE] Groupe scolaire Les Tilleuls – construction neuve'
@@ -43,6 +43,10 @@ export async function assurerProjetExemple(prisma: PrismaClient, userId: string)
 export async function completerProjetsExemple(prisma: PrismaClient) {
   const projets = await prisma.projet.findMany({ where: { name: NOM_PROJET_EXEMPLE }, select: { id: true } })
   let ajouts = 0
-  for (const p of projets) ajouts += await completerJournalExemple(prisma, p.id)
-  return { projets: projets.length, evenementsAjoutes: ajouts }
+  let periodes = 0
+  for (const p of projets) {
+    ajouts += await completerJournalExemple(prisma, p.id)
+    periodes += await completerPeriodesExemple(prisma, p.id)
+  }
+  return { projets: projets.length, evenementsAjoutes: ajouts, periodesAjoutees: periodes }
 }

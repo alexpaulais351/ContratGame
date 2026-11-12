@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -50,6 +50,7 @@ model Projet {
   courriers        CourrierChantier[]
   categories       CategorieEvenement[]
   evenements       EvenementChantier[]
+  periodes         PeriodeFrise[]
   lignesFicheEcart LigneFicheEcart[]
   matrices         MatriceDecisionnelle[]
 }
@@ -230,6 +231,24 @@ model EvenementChantier {
   courrier      CourrierChantier?   @relation(fields: [courrierId], references: [id], onDelete: SetNull)
   fichiers      FichierEvenement[]
   lignesEcart   LigneFicheEcart[]
+}
+
+/// Période affichée sur la frise du journal (barre horizontale sur une plage de dates)
+model PeriodeFrise {
+  id            String   @id @default(cuid())
+  projetId      String
+  titre         String
+  sousTitre     String?
+  dateDebut     DateTime
+  dateFin       DateTime
+  couleur       String   @default("bleu") // clé de palette : bleu | rouge | jaune | vert | orange | violet | bleuCiel | rose | gris
+  afficherFrise Boolean  @default(true)
+  zoneFond      Boolean  @default(false)
+  ordre         Int      @default(0)
+  createdAt     DateTime @default(now())
+  projet        Projet   @relation(fields: [projetId], references: [id], onDelete: Cascade)
+
+  @@index([projetId])
 }
 
 model FichierEvenement {

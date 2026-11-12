@@ -9,6 +9,15 @@
  *  - largeur fixe par mois (LARGEUR_MOIS = 260 px), bulles ~185 px.
  *
  * Les dates sont manipulées en « jours » texte 'AAAA-MM-JJ' (indépendant du fuseau).
+ *
+ * Périodes (barres horizontales sur une plage de dates) :
+ *  - même échelle temporelle que les bulles (début du 1er jour → fin du dernier jour) ;
+ *  - rangées par algorithme d'intervalles (glouton, déterministe) : deux périodes qui
+ *    se chevauchent dans le temps (jours inclusifs) ne partagent jamais une rangée ;
+ *  - la bande des périodes occupe le HAUT de la frise : bulles du haut, axe et bulles du bas
+ *    sont décalés de sa hauteur (aucun chevauchement possible avec les bulles) ;
+ *  - export multi-pages : une période coupée par une page est découpée en segments
+ *    (segmentsPeriode) et son libellé est recentré sur la partie visible de chaque page.
  */
 
 export const LARGEUR_MOIS = 260
@@ -37,6 +46,50 @@ export const BULLE = {
   maxLignesTitre: 3,
   maxLignesDescription: 2,
 } as const
+
+// Périodes (doit rester cohérent avec FriseRendu.tsx)
+export const PERIODE = {
+  /** hauteur d'une barre de période */
+  hauteur: 36,
+  /** espace vertical entre deux rangées de périodes */
+  espace: 5,
+  /** marge au-dessus de la première rangée */
+  margeHaut: 10,
+  /** espace entre la dernière rangée et la zone des bulles du haut */
+  margeBas: 6,
+  paddingX: 8,
+  ligneTitre: 15,
+  ligneSousTitre: 13,
+  /** largeur moyenne d'un caractère (px) : titre 11 px gras majuscules, sous-titre 10 px */
+  pxCaractereTitre: 7.4,
+  pxCaractereSousTitre: 5.6,
+  /** en deçà, un segment de période coupé par une page est jugé « étroit » (libellé illisible) */
+  largeurMinSegment: 140,
+} as const
+
+export type ElementPeriode = {
+  id: string
+  /** 'AAAA-MM-JJ' (inclus) */
+  debut: string
+  /** 'AAAA-MM-JJ' (inclus) */
+  fin: string
+}
+
+export type PlacementPeriode = {
+  id: string
+  debut: string
+  fin: string
+  /** début du 1er jour (après éventuel rognage aux limites) */
+  gauche: number
+  /** fin du dernier jour (après éventuel rognage aux limites) */
+  droite: number
+  rangee: number
+  top: number
+  hauteur: number
+  /** la période commence avant / finit après la partie affichée */
+  tronqueDebut: boolean
+  tronqueFin: boolean
+}
 
 export type ElementFrise = {
   id: string
@@ -73,20 +126,28 @@ export type OptionsFrise = {
   moisDebut?: string
   /** dernier mois affiché 'AAAA-MM' (défaut : mois du dernier élément) */
   moisFin?: string
+  /** périodes à afficher (barres horizontales) */
+  periodes?: ElementPeriode[]
+  /** bornes 'AAAA-MM-JJ' (incluses) auxquelles les périodes sont rognées (export d'une plage) */
+  limitesPeriodes?: { debut: string; fin: string }
 }
 
 export type DispositionFrise = {
   placements: Placement[]
+  periodes: PlacementPeriode[]
+  /** hauteur de la bande des périodes en haut de la frise (0 si aucune) */
+  hauteurPeriodes: number
   mois: MoisAxe[]
   largeurMois: number
   largeurBulle: number
   largeurTotale: number
+  /** hauteur de la zone des bulles du haut (sous la bande des périodes) */
   hauteurHaut: number
   hauteurBas: number
-  /** ordonnée de la ligne dans la frise */
+  /** ordonnée de la ligne dans la frise (= hauteurPeriodes + hauteurHaut) */
   yLigne: number
   hauteurTotale: number
-  /** étendue horizontale réelle du contenu (bulles + marge) — pour le recadrage */
+  /** étendue horizontale réelle du contenu (bulles + périodes + marge) — pour le recadrage */
   contenuGauche: number
   contenuDroite: number
 }
@@ -119,6 +180,75 @@ export function abscisseJour(jour: string, indexMoisDebut: number, largeurMois: 
   const iMois = indexMois(annee, mois) - indexMoisDebut
   const fraction = (j - 0.5) / joursDansMois(annee, mois)
   return marge + (iMois + fraction) * largeurMois
+}
+
+/** Abscisse du DÉBUT d'un jour (minuit) — bord gauche d'une période. */
+export function abscisseDebutJour(jour: string, indexMoisDebut: number, largeurMois: number, marge = MARGE_AXE): number {
+  const { annee, mois, j } = decomposerJour(jour)
+  return marge + (indexMois(annee, mois) - indexMoisDebut + (j - 1) / joursDansMois(annee, mois)) * largeurMois
+}
+
+/** Abscisse de la FIN d'un jour (minuit suivant) — bord droit d'une période. */
+export function abscisseFinJour(jour: string, indexMoisDebut: number, largeurMois: number, marge = MARGE_AXE): number {
+  const { annee, mois, j } = decomposerJour(jour)
+  return marge + (indexMois(annee, mois) - indexMoisDebut + j / joursDansMois(annee, mois)) * largeurMois
+}
+
+// ---------------------------------------------------------------------------
+// Périodes : rangées (intervalles) et segments
+// ---------------------------------------------------------------------------
+
+/**
+ * Rangées des périodes (glouton sur intervalles, déterministe) : tri par début, puis la plus
+ * longue d'abord, puis id ; chaque période prend la première rangée dont toutes les périodes
+ * se terminent STRICTEMENT avant son début (jours inclus : fin = début → chevauchement).
+ * Retourne { id → rangée } et le nombre de rangées.
+ */
+export function rangerPeriodes(periodes: ElementPeriode[]): { rangees: Map<string, number>; nbRangees: number } {
+  const tries = [...periodes]
+    .map((p) => (p.fin < p.debut ? { ...p, debut: p.fin, fin: p.debut } : p))
+    .sort((a, b) => (a.debut !== b.debut ? (a.debut < b.debut ? -1 : 1) : a.fin !== b.fin ? (a.fin > b.fin ? -1 : 1) : a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  const finsRangees: string[] = []
+  const rangees = new Map<string, number>()
+  for (const p of tries) {
+    let r = finsRangees.findIndex((f) => f < p.debut)
+    if (r < 0) {
+      r = finsRangees.length
+      finsRangees.push(p.fin)
+    } else finsRangees[r] = p.fin
+    rangees.set(p.id, r)
+  }
+  return { rangees, nbRangees: finsRangees.length }
+}
+
+export function hauteurBandePeriodes(nbRangees: number): number {
+  if (nbRangees <= 0) return 0
+  return PERIODE.margeHaut + nbRangees * PERIODE.hauteur + (nbRangees - 1) * PERIODE.espace + PERIODE.margeBas
+}
+
+export type SegmentPeriode = { gauche: number; droite: number; coupeGauche: boolean; coupeDroite: boolean }
+
+/**
+ * Découpe une période par les coupes de pages : un segment par page traversée,
+ * chacun portant son propre libellé (recentré sur la partie visible de la page).
+ * `coupes` = [x0, x1, …, xn] (bornes des pages) ; sans coupes → un seul segment.
+ */
+export function segmentsPeriode(p: Pick<PlacementPeriode, 'gauche' | 'droite'>, coupes: number[] = []): SegmentPeriode[] {
+  const internes = coupes.slice(1, -1).filter((c) => c > p.gauche + 0.5 && c < p.droite - 0.5)
+  const bornes = [p.gauche, ...internes, p.droite]
+  const res: SegmentPeriode[] = []
+  for (let i = 0; i < bornes.length - 1; i++) {
+    res.push({ gauche: bornes[i], droite: bornes[i + 1], coupeGauche: i > 0, coupeDroite: i < bornes.length - 2 })
+  }
+  return res
+}
+
+/** Tronque un libellé (avec « … ») pour qu'il tienne dans `largeurPx` (estimation par caractère, sans rendu). */
+export function ajusterLibelle(texte: string, largeurPx: number, pxParCaractere: number): string {
+  const max = Math.floor(largeurPx / pxParCaractere)
+  if (texte.length <= max) return texte
+  if (max <= 1) return ''
+  return texte.slice(0, max - 1).trimEnd() + '…'
 }
 
 // ---------------------------------------------------------------------------
@@ -208,8 +338,10 @@ export function calculerFrise(elements: ElementFrise[], options: OptionsFrise = 
   // Étendue des mois
   const auj = new Date()
   const defaut = `${auj.getFullYear()}-${String(auj.getMonth() + 1).padStart(2, '0')}`
-  const premier = options.moisDebut ?? (tries[0]?.jour.slice(0, 7) || defaut)
-  const dernier = options.moisFin ?? (tries[tries.length - 1]?.jour.slice(0, 7) || premier)
+  const periodesEntree = (options.periodes ?? []).map((p) => (p.fin < p.debut ? { ...p, debut: p.fin, fin: p.debut } : p))
+  const joursConnus = [...tries.map((e) => e.jour), ...periodesEntree.flatMap((p) => [p.debut, p.fin])].sort()
+  const premier = options.moisDebut ?? (joursConnus[0]?.slice(0, 7) || defaut)
+  const dernier = options.moisFin ?? (joursConnus[joursConnus.length - 1]?.slice(0, 7) || premier)
   const iDebut = cleVersIndex(premier)
   const iFin = Math.max(iDebut, cleVersIndex(dernier))
   const mois: MoisAxe[] = []
@@ -217,6 +349,38 @@ export function calculerFrise(elements: ElementFrise[], options: OptionsFrise = 
     mois.push({ annee: Math.floor(i / 12), mois: (i % 12) + 1, x: MARGE_AXE + (i - iDebut) * largeurMois, largeur: largeurMois })
   }
   const largeurTotale = 2 * MARGE_AXE + mois.length * largeurMois
+
+  // Périodes : rognées à l'axe (et aux limites demandées), rangées, bande en haut
+  const axeGauche = MARGE_AXE
+  const axeDroite = MARGE_AXE + mois.length * largeurMois
+  const limG = Math.max(axeGauche, options.limitesPeriodes ? abscisseDebutJour(options.limitesPeriodes.debut, iDebut, largeurMois) : -Infinity)
+  const limD = Math.min(axeDroite, options.limitesPeriodes ? abscisseFinJour(options.limitesPeriodes.fin, iDebut, largeurMois) : Infinity)
+  const visibles = periodesEntree
+    .map((p) => {
+      const g = abscisseDebutJour(p.debut, iDebut, largeurMois)
+      const dr = abscisseFinJour(p.fin, iDebut, largeurMois)
+      return { p, g, dr, gauche: Math.max(g, limG), droite: Math.min(dr, limD) }
+    })
+    .filter((v) => v.droite - v.gauche > 0.5)
+  const { rangees, nbRangees } = rangerPeriodes(visibles.map((v) => v.p))
+  const hauteurPeriodes = hauteurBandePeriodes(nbRangees)
+  const periodes: PlacementPeriode[] = visibles
+    .map((v) => {
+      const rangee = rangees.get(v.p.id) ?? 0
+      return {
+        id: v.p.id,
+        debut: v.p.debut,
+        fin: v.p.fin,
+        gauche: v.gauche,
+        droite: v.droite,
+        rangee,
+        top: PERIODE.margeHaut + rangee * (PERIODE.hauteur + PERIODE.espace),
+        hauteur: PERIODE.hauteur,
+        tronqueDebut: v.gauche > v.g + 0.01,
+        tronqueFin: v.droite < v.dr - 0.01,
+      }
+    })
+    .sort((a, b) => a.rangee - b.rangee || a.gauche - b.gauche || (a.id < b.id ? -1 : 1))
 
   const placements: Placement[] = []
   for (const el of tries) {
@@ -252,19 +416,22 @@ export function calculerFrise(elements: ElementFrise[], options: OptionsFrise = 
     placements.filter((p) => p.cote === cote).reduce((m, p) => Math.max(m, p.distance + p.hauteur), ECART_LIGNE)
   const hauteurHaut = etendue('haut') + MARGE_VERTICALE
   const hauteurBas = etendue('bas') + MARGE_VERTICALE
-  const contenuGauche = placements.length ? Math.max(0, Math.min(...placements.map((p) => p.gauche)) - 12) : 0
-  const contenuDroite = placements.length ? Math.min(largeurTotale, Math.max(...placements.map((p) => p.droite)) + 12) : largeurTotale
+  const bords = [...placements, ...periodes]
+  const contenuGauche = bords.length ? Math.max(0, Math.min(...bords.map((p) => p.gauche)) - 12) : 0
+  const contenuDroite = bords.length ? Math.min(largeurTotale, Math.max(...bords.map((p) => p.droite)) + 12) : largeurTotale
 
   return {
     placements,
+    periodes,
+    hauteurPeriodes,
     mois,
     largeurMois,
     largeurBulle,
     largeurTotale,
     hauteurHaut,
     hauteurBas,
-    yLigne: hauteurHaut,
-    hauteurTotale: hauteurHaut + hauteurBas,
+    yLigne: hauteurPeriodes + hauteurHaut,
+    hauteurTotale: hauteurPeriodes + hauteurHaut + hauteurBas,
     contenuGauche,
     contenuDroite,
   }
@@ -336,34 +503,57 @@ export function chercherLargeurMois(
 /**
  * Coupes horizontales (en px de frise) entre les bulles : jamais au travers d'une bulle
  * quand c'est possible. Retourne les bornes [x0, x1, ..., xn] (n pages).
+ *
+ * Périodes : une coupe peut traverser une période (elles durent souvent plusieurs mois) —
+ * la période est alors découpée en segments, chacun avec son libellé recentré
+ * (segmentsPeriode). À nombre de bulles traversées égal et page au moins à moitié pleine,
+ * on préfère une coupe qui ne laisse aucun segment de période plus étroit que
+ * PERIODE.largeurMinSegment (libellé lisible), puis la plus à droite (pages pleines).
  */
 export function calculerCoupes(
   placements: Pick<Placement, 'gauche' | 'droite'>[],
   debut: number,
   fin: number,
   largeurPagePx: number,
+  periodes: Pick<PlacementPeriode, 'gauche' | 'droite'>[] = [],
 ): number[] {
   const coupes = [debut]
   let courant = debut
   let garde = 0
   while (fin - courant > largeurPagePx + 0.5 && garde++ < 1000) {
     const limite = courant + largeurPagePx
-    // candidats : bords des bulles (côté espace libre) + limite
+    // candidats : bords des bulles et des périodes (côté espace libre) + limite
     const candidats = new Set<number>([limite])
-    for (const p of placements) {
+    for (const p of [...placements, ...periodes]) {
       if (p.gauche > courant && p.gauche <= limite) candidats.add(p.gauche - 1)
       if (p.droite > courant && p.droite <= limite) candidats.add(p.droite + 1)
     }
+    // … et positions laissant exactement un segment de période lisible de chaque côté
+    for (const p of periodes) {
+      for (const c of [p.gauche + PERIODE.largeurMinSegment + 1, p.droite - PERIODE.largeurMinSegment - 1]) {
+        if (c > courant && c <= limite) candidats.add(c)
+      }
+    }
     const traverse = (c: number) => placements.filter((p) => p.gauche < c && p.droite > c).length
+    // segment étroit : morceau de période (côté page courante ou suivante) trop court pour son libellé
+    const etroits = (c: number) =>
+      periodes.filter((p) => p.gauche < c - 0.5 && p.droite > c + 0.5).filter((p) => {
+        const avant = c - Math.max(p.gauche, courant)
+        const apres = Math.min(p.droite, c + largeurPagePx, fin) - c
+        return avant < PERIODE.largeurMinSegment || apres < PERIODE.largeurMinSegment
+      }).length
     let choix = -1
-    let choixTraverse = Infinity
+    let meilleur = [Infinity, Infinity, Infinity]
     for (const c of Array.from(candidats).sort((a, b) => b - a)) {
       if (c <= courant + 1 || c > limite) continue
-      const t = traverse(c)
-      if (t < choixTraverse) {
+      // 1. page au moins à moitié pleine (jamais de page quasi vide)  2. bulles traversées
+      // 3. segments de période étroits — puis, à égalité, la coupe la plus à droite (pages pleines)
+      const score = [c < courant + largeurPagePx / 2 ? 1 : 0, traverse(c), etroits(c)]
+      const k = score.findIndex((v, i) => v !== meilleur[i])
+      if (k >= 0 && score[k] < meilleur[k]) {
         choix = c
-        choixTraverse = t
-        if (t === 0) break
+        meilleur = score
+        if (score.every((v) => v === 0)) break
       }
     }
     if (choix < 0) choix = limite
@@ -392,7 +582,7 @@ export function planifierPages(
   compressionMax = 0.15,
 ): PlanPages {
   const echelle = echellePour(d, zone)
-  const plan = (e: number) => calculerCoupes(d.placements, d.contenuGauche, d.contenuDroite, zone.largeur / e)
+  const plan = (e: number) => calculerCoupes(d.placements, d.contenuGauche, d.contenuDroite, zone.largeur / e, d.periodes)
   const coupes = plan(echelle)
   const nb = coupes.length - 1
   if (nb > 1) {
