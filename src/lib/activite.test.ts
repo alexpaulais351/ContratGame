@@ -23,6 +23,8 @@ test('libellePage : pages fixes et modules projet', () => {
   assert.equal(libellePage('/projets/[id]/suivi/journal/fiche-ecart').libelle, 'Journal — Fiche écart')
   assert.equal(libellePage('/projets/[id]/suivi/sous-traitants').libelle, 'Suivi ST')
   assert.equal(libellePage('/projets/[id]/sous-traitants').libelle, 'Sous-traitants')
+  assert.equal(libellePage('/projets/[id]/diffusion').libelle, 'Diffusion')
+  assert.equal(libellePage('/projets/[id]/diffusion').rubrique, 'Gestion Contractuelle')
   assert.equal(libellePage('/projets/[id]/courriers/[id]').libelle, 'Courriers — détail')
   assert.equal(libellePage('/projets/[id]/detail-estimatif').rubrique, 'Gestion Financière')
 })

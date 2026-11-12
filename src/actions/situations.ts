@@ -128,3 +128,36 @@ export async function supprimerSituation(projetId: string, situationId: string):
     return { success: false, error: (e as Error).message }
   }
 }
+
+const avancementsSchema = z.array(z.object({ prixNouveauId: z.string().min(1), avancement: z.number().finite().min(0).max(1000) })).max(500)
+
+/** Enregistre l'avancement cumulé (%) des prix nouveaux (OS reçu) dans une situation ; fige le montant de référence. */
+export async function enregistrerAvancementsPN(projetId: string, situationId: string, data: unknown): Promise<ActionResult> {
+  try {
+    await requireMember(projetId)
+    const items = avancementsSchema.parse(data)
+    const s = await prisma.situation.findFirst({ where: { id: situationId, projetId } })
+    if (!s) return { success: false, error: 'Situation introuvable' }
+    if (s.statut === 'validee') return { success: false, error: 'Situation validée : lecture seule' }
+    const pns = await prisma.prixNouveau.findMany({ where: { projetId, id: { in: items.map((i) => i.prixNouveauId) } } })
+    const parId = new Map(pns.map((p) => [p.id, p]))
+    await prisma.$transaction(
+      items
+        .filter((i) => parId.has(i.prixNouveauId))
+        .map((i) => {
+          const p = parId.get(i.prixNouveauId)!
+          const montantBase = p.montantAccepte ?? p.montantPresente
+          return prisma.ligneSituationPN.upsert({
+            where: { situationId_prixNouveauId: { situationId, prixNouveauId: i.prixNouveauId } },
+            create: { situationId, prixNouveauId: i.prixNouveauId, avancement: i.avancement, montantBase },
+            update: { avancement: i.avancement, montantBase },
+          })
+        }),
+    )
+    // pas de revalidation de la page détail (évite d'écraser la saisie en cours) : liste seulement
+    revalidatePath(`/projets/${projetId}/suivi/situations`)
+    return { success: true, data: undefined }
+  } catch (e) {
+    return { success: false, error: e instanceof z.ZodError ? e.issues[0].message : (e as Error).message }
+  }
+}

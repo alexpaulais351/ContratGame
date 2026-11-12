@@ -21,6 +21,7 @@ export const ONGLETS_PROJET: OngletProjet[] = [
     label: 'Gestion Contractuelle',
     modules: [
       { key: 'infos', label: 'Infos', href: 'infos', toggleable: false },
+      { key: 'diffusion', label: 'Diffusion', href: 'diffusion', toggleable: true },
       { key: 'courriers', label: 'Courriers', href: 'courriers', toggleable: true },
       { key: 'sous-traitants', label: 'Sous-traitants', href: 'sous-traitants', toggleable: true },
       { key: 'journal', label: 'Journal', href: 'suivi/journal', toggleable: true },

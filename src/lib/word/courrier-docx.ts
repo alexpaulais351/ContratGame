@@ -180,7 +180,12 @@ export async function genererCourrierDocx(c: CourrierWordData, profil: ProfilSoc
   )
   if (signNom) enfants.push(para(signNom, { bold: true, align: AlignmentType.RIGHT }))
   if (signFonction) enfants.push(para(signFonction, { align: AlignmentType.RIGHT }))
-  if (c.copies) enfants.push(para('', { after: 300 }), para(`Copies : ${c.copies}`, { size: 18, color: hex(VINCI.texteSecondaire) }))
+  if (c.copies)
+    enfants.push(
+      para('', { after: 300 }),
+      // le champ Copies peut contenir des retours à la ligne (Textarea) : un paragraphe par ligne
+      ...`Copies : ${c.copies}`.split('\n').map((l) => para(l || ' ', { size: 18, color: hex(VINCI.texteSecondaire) })),
+    )
 
   const piedGauche = [profil?.nomSociete, c.reference].filter(Boolean).join(' – ')
   const footer = new Footer({

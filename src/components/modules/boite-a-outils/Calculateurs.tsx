@@ -13,6 +13,7 @@ import {
 } from '@/lib/boite-a-outils/dates'
 import { SRC } from '@/lib/boite-a-outils/sources'
 import { AlerteJaune } from './AlerteJaune'
+import { VINCI, VINCI_SECONDAIRE } from '@/lib/design-tokens'
 
 const SELECT = 'h-10 w-full rounded-md border border-vinci-gris-bordure bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-vinci-bleu'
 const fr = (iso: string) => formatDateFR(isoVersDateLocale(iso))
@@ -391,21 +392,64 @@ function CalculDates() {
   )
 }
 
+const CALCULATEURS = [
+  { cle: 'interets', titre: 'Intérêts moratoires', question: 'Le client paie en retard : combien me doit-il ?', icone: Timer, couleur: 'orange', C: CalculInterets },
+  { cle: 'penalites', titre: 'Pénalités de retard', question: 'Les travaux sont en retard : combien de pénalités ?', icone: Scale, couleur: 'rose', C: CalculPenalites },
+  { cle: 'revision', titre: 'Révision de prix', question: 'Quel coefficient appliquer avec les index du mois ?', icone: Percent, couleur: 'bleuMoyen', C: CalculRevision },
+  { cle: 'retenue', titre: 'Retenue de garantie', question: 'Combien est retenu et quand est-ce restitué ?', icone: ShieldCheck, couleur: 'vert', C: CalculRetenue },
+  { cle: 'dates', titre: 'Calcul de dates', question: 'Quelle est la date limite d’un délai ?', icone: CalendarDays, couleur: 'violet', C: CalculDates },
+] as const
+
 export function Calculateurs() {
+  const [actif, setActif] = useState<(typeof CALCULATEURS)[number]['cle']>('interets')
   return (
     <div className="space-y-4">
       <div>
         <h2 className="page-titre">Calculateurs</h2>
-        <p className="text-sm text-vinci-texte-secondaire">Calculs instantanés, rien n’est enregistré.</p>
+        <p className="text-sm text-vinci-texte-secondaire">Que voulez-vous calculer ? Choisissez un calculateur — calculs instantanés, rien n’est enregistré.</p>
+      </div>
+      <div role="tablist" aria-label="Choix du calculateur" className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+        {CALCULATEURS.map((c) => {
+          const sel = c.cle === actif
+          const coul = VINCI_SECONDAIRE[c.couleur]
+          return (
+            <button
+              key={c.cle}
+              type="button"
+              role="tab"
+              aria-selected={sel}
+              aria-controls={`calc-${c.cle}`}
+              onClick={() => setActif(c.cle)}
+              className={cn(
+                'flex items-start gap-2.5 rounded-xl border-2 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-vinci-bleu',
+                sel ? 'shadow-md' : 'bg-white',
+              )}
+              style={{ borderColor: sel ? coul.base : VINCI.grisBordure, backgroundColor: sel ? coul.clair : undefined }}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white" style={{ backgroundColor: coul.base }}>
+                <c.icone className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[14px] font-bold leading-tight text-vinci-bleu-fonce">{c.titre}</span>
+                <span className="mt-0.5 block text-[12px] leading-snug text-vinci-texte-secondaire">{c.question}</span>
+              </span>
+            </button>
+          )
+        })}
       </div>
       <AlerteJaune>Valeurs par défaut du CCAG Travaux 2021 et du code de la commande publique : vérifiez les stipulations du CCAP de votre marché.</AlerteJaune>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <CalculInterets />
-        <CalculPenalites />
-        <CalculRevision />
-        <CalculRetenue />
-        <CalculDates />
-      </div>
+      {CALCULATEURS.map((c) => (
+        <div
+          key={c.cle}
+          id={`calc-${c.cle}`}
+          role="tabpanel"
+          hidden={c.cle !== actif}
+          className="rounded-lg border-t-4"
+          style={{ borderTopColor: VINCI_SECONDAIRE[c.couleur].base }}
+        >
+          <c.C />
+        </div>
+      ))}
     </div>
   )
 }

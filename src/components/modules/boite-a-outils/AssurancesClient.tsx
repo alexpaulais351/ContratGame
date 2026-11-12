@@ -12,6 +12,7 @@ import {
 import { SOURCES_PAR_OUTIL } from '@/lib/boite-a-outils/sources'
 import { AlerteJaune } from './AlerteJaune'
 import { AideDecisionAssurances } from './AideDecisionAssurances'
+import { PanoramaCouvertures } from './PanoramaCouvertures'
 import { SITUATION_DEFAUT, recommander, type CleGarantie, type Situation } from '@/lib/assurances/aide-decision'
 
 const pct = (x: number) => `${(x / FIN_FRISE) * 100}%`
@@ -213,10 +214,12 @@ export function AssurancesClient() {
         et les attestations de chaque intervenant. La GPA et la garantie biennale sont des garanties légales, pas des assurances.
       </AlerteJaune>
 
+      <PanoramaCouvertures />
+
       <AideDecisionAssurances situation={situation} onChange={setSituation} reco={reco} />
 
       <section className="carte space-y-3" aria-labelledby="frise-assurances">
-        <h3 id="frise-assurances" className="text-lg font-bold text-vinci-bleu">Frise des couvertures</h3>
+        <h3 id="frise-assurances" className="text-lg font-bold text-vinci-bleu">Frise des couvertures — selon votre situation</h3>
         {reco.surligner.length > 0 && (
           <p className="text-xs text-vinci-texte-secondaire">
             Encadrées en rouge : les garanties correspondant à la situation choisie dans l’aide à la décision.

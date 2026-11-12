@@ -4,6 +4,8 @@ import { PDF_COULEURS, formatMontant, formatNombreFR } from './format'
 import type { ProfilSociete } from '@/stores/profil'
 import type { LignePDFSituation, RecapSTLigne } from '@/components/modules/situations/types'
 import { sousTotaux, type Totaux } from '@/components/modules/situations/calculs'
+import type { PNCalcule } from '@/components/modules/situations/calculs-pn'
+import type { DecompteSituation } from '@/components/modules/situations/decompte'
 
 type Props = {
   profil: ProfilSociete | null
@@ -15,6 +17,9 @@ type Props = {
   lignes: LignePDFSituation[]
   totaux: Totaux
   recapST: RecapSTLigne[]
+  prixNouveaux: PNCalcule[]
+  totauxPN: { base: number; precedent: number; mois: number; cumul: number }
+  decompte: DecompteSituation
 }
 
 // Largeurs en % (paysage)
@@ -22,7 +27,7 @@ const W = { code: 7, des: 25, u: 4, qm: 7, pu: 7, cp: 7, qmo: 7, cum: 7, pct: 5,
 const w = (k: keyof typeof W) => ({ width: `${W[k]}%` })
 const pct = (n: number) => `${formatNombreFR(n, 1)} %`
 
-export function SituationPDF({ profil, nomProjet, numero, libelle, periode, statut, lignes, totaux, recapST }: Props) {
+export function SituationPDF({ profil, nomProjet, numero, libelle, periode, statut, lignes, totaux, recapST, prixNouveaux, totauxPN, decompte }: Props) {
   const st = sousTotaux(lignes)
   const stTot = recapST.reduce(
     (a, r) => ({ total: a.total + r.montantTotal, mois: a.mois + r.factureMois, cumule: a.cumule + r.cumule, reste: a.reste + r.reste }),
@@ -101,6 +106,49 @@ export function SituationPDF({ profil, nomProjet, numero, libelle, periode, stat
           </View>
         </View>
 
+        {prixNouveaux.length > 0 && (
+          <View wrap={false} style={{ marginTop: 16 }}>
+            <Text style={[pdfStyles.titre, { fontSize: 11 }]}>Prix nouveaux — OS reçus</Text>
+            <View style={pdfStyles.table}>
+              <View style={pdfStyles.thRow}>
+                <Text style={[pdfStyles.th, { width: '8%' }]}>N°</Text>
+                <Text style={[pdfStyles.th, { width: '30%' }]}>Intitulé</Text>
+                <Text style={[pdfStyles.th, { width: '12%' }]}>OS</Text>
+                <Text style={[pdfStyles.th, pdfStyles.num, { width: '11%' }]}>Montant</Text>
+                <Text style={[pdfStyles.th, pdfStyles.num, { width: '6%' }]}>% préc.</Text>
+                <Text style={[pdfStyles.th, pdfStyles.num, { width: '6%' }]}>% cumulé</Text>
+                <Text style={[pdfStyles.th, pdfStyles.num, { width: '9%' }]}>Mont. préc.</Text>
+                <Text style={[pdfStyles.th, pdfStyles.num, { width: '9%' }]}>Mont. mois</Text>
+                <Text style={[pdfStyles.th, pdfStyles.num, { width: '9%' }]}>Mont. cumulé</Text>
+              </View>
+              {prixNouveaux.map((p, i) => (
+                <View key={p.id} style={i % 2 === 1 ? [pdfStyles.tr, pdfStyles.trAlt] : pdfStyles.tr}>
+                  <Text style={[pdfStyles.td, { width: '8%' }]}>{p.numero}</Text>
+                  <Text style={[pdfStyles.td, { width: '30%' }]}>{p.intitule}</Text>
+                  <Text style={[pdfStyles.td, { width: '12%' }]}>{[p.numeroOS, p.dateOS ? p.dateOS.split('-').reverse().join('/') : ''].filter(Boolean).join(' du ')}</Text>
+                  <Text style={[pdfStyles.td, pdfStyles.num, { width: '11%' }]}>{formatMontant(p.montantBase)}{p.accepte ? '' : ' *'}</Text>
+                  <Text style={[pdfStyles.td, pdfStyles.num, { width: '6%' }]}>{pct(p.avancementPrecedent)}</Text>
+                  <Text style={[pdfStyles.td, pdfStyles.num, { width: '6%' }]}>{pct(p.avancement)}</Text>
+                  <Text style={[pdfStyles.td, pdfStyles.num, { width: '9%' }]}>{formatMontant(p.montantPrecedent)}</Text>
+                  <Text style={[pdfStyles.td, pdfStyles.num, { width: '9%' }]}>{formatMontant(p.montantMois)}</Text>
+                  <Text style={[pdfStyles.td, pdfStyles.num, { width: '9%' }]}>{formatMontant(p.montantCumul)}</Text>
+                </View>
+              ))}
+              <View style={pdfStyles.tfRow}>
+                <Text style={[pdfStyles.tf, { width: '50%' }]}>Total prix nouveaux</Text>
+                <Text style={[pdfStyles.tf, pdfStyles.num, { width: '11%' }]}>{formatMontant(totauxPN.base)}</Text>
+                <Text style={[pdfStyles.tf, { width: '12%' }]}> </Text>
+                <Text style={[pdfStyles.tf, pdfStyles.num, { width: '9%' }]}>{formatMontant(totauxPN.precedent)}</Text>
+                <Text style={[pdfStyles.tf, pdfStyles.num, { width: '9%' }]}>{formatMontant(totauxPN.mois)}</Text>
+                <Text style={[pdfStyles.tf, pdfStyles.num, { width: '9%' }]}>{formatMontant(totauxPN.cumul)}</Text>
+              </View>
+            </View>
+            {prixNouveaux.some((p) => !p.accepte) && (
+              <Text style={[pdfStyles.sousTitre, { marginTop: 3 }]}>* montant présenté (montant accepté non renseigné)</Text>
+            )}
+          </View>
+        )}
+
         <View break={recapST.length > 0 && lignes.length > 18} wrap={false} style={{ marginTop: 16 }}>
           <Text style={[pdfStyles.titre, { fontSize: 11 }]}>Sous-traitants — {periode}</Text>
           {recapST.length === 0 ? (
@@ -117,7 +165,7 @@ export function SituationPDF({ profil, nomProjet, numero, libelle, periode, stat
               </View>
               {recapST.map((r, i) => (
                 <View key={r.id} style={i % 2 === 1 ? [pdfStyles.tr, pdfStyles.trAlt] : pdfStyles.tr}>
-                  <Text style={[pdfStyles.td, { width: '28%' }]}>{r.nom}</Text>
+                  <Text style={[pdfStyles.td, { width: '28%' }]}>{r.nom}{r.paiementDirect ? ' (PD)' : ''}</Text>
                   <Text style={[pdfStyles.td, pdfStyles.num, { width: '16%' }]}>{formatMontant(r.montantTotal)}</Text>
                   <Text style={[pdfStyles.td, pdfStyles.num, { width: '16%' }]}>{formatMontant(r.factureMois)}</Text>
                   <Text style={[pdfStyles.td, pdfStyles.num, { width: '16%' }]}>{formatMontant(r.cumule)}</Text>
@@ -135,6 +183,33 @@ export function SituationPDF({ profil, nomProjet, numero, libelle, periode, stat
               </View>
             </View>
           )}
+        </View>
+        <View wrap={false} style={{ marginTop: 16, width: '60%' }}>
+          <Text style={[pdfStyles.titre, { fontSize: 11 }]}>Décompte de la situation (HT)</Text>
+          <View style={pdfStyles.table}>
+            <View style={pdfStyles.thRow}>
+              <Text style={[pdfStyles.th, { width: '50%' }]}>Montants HT</Text>
+              <Text style={[pdfStyles.th, pdfStyles.num, { width: '25%' }]}>Du mois</Text>
+              <Text style={[pdfStyles.th, pdfStyles.num, { width: '25%' }]}>Cumulé</Text>
+            </View>
+            {[
+              ['Travaux du marché', totaux.mois, totaux.cumul],
+              ['Prix nouveaux (OS reçus)', totauxPN.mois, totauxPN.cumul],
+              ['Total travaux', decompte.mois, decompte.cumul],
+              ['dont sous-traitants en paiement direct (PD)', -decompte.stPaiementDirectMois, -decompte.stPaiementDirectCumul],
+            ].map(([l, m, c], i) => (
+              <View key={String(l)} style={i % 2 === 1 ? [pdfStyles.tr, pdfStyles.trAlt] : pdfStyles.tr}>
+                <Text style={[pdfStyles.td, { width: '50%' }, i === 2 ? { fontFamily: 'Helvetica-Bold' } : {}]}>{String(l)}</Text>
+                <Text style={[pdfStyles.td, pdfStyles.num, { width: '25%' }]}>{formatMontant(Number(m))}</Text>
+                <Text style={[pdfStyles.td, pdfStyles.num, { width: '25%' }]}>{formatMontant(Number(c))}</Text>
+              </View>
+            ))}
+            <View style={pdfStyles.tfRow}>
+              <Text style={[pdfStyles.tf, { width: '50%' }]}>Montant revenant à l&apos;entreprise</Text>
+              <Text style={[pdfStyles.tf, pdfStyles.num, { width: '25%' }]}>{formatMontant(decompte.titulaireMois)}</Text>
+              <Text style={[pdfStyles.tf, pdfStyles.num, { width: '25%' }]}>{formatMontant(decompte.titulaireCumul)}</Text>
+            </View>
+          </View>
         </View>
         <PiedPagePDF gauche={`${nomProjet} — Situation n°${numero} — ${periode}`} />
       </Page>

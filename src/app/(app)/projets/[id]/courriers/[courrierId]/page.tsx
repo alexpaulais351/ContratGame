@@ -2,18 +2,23 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getProjetPourPage } from '@/lib/auth-helpers'
 import { EditeurCourrier } from '@/components/modules/courriers/EditeurCourrier'
+import { contactsDiffusionProjet } from '@/components/modules/diffusion/serveur'
 
 export default async function CourrierPage({ params }: { params: { id: string; courrierId: string } }) {
   const { projet } = await getProjetPourPage(params.id)
-  const c = await prisma.courrierChantier.findFirst({
-    where: { id: params.courrierId, projetId: params.id },
-    include: { evenements: { select: { id: true }, take: 1 } },
-  })
+  const [c, contacts] = await Promise.all([
+    prisma.courrierChantier.findFirst({
+      where: { id: params.courrierId, projetId: params.id },
+      include: { evenements: { select: { id: true }, take: 1 } },
+    }),
+    contactsDiffusionProjet(params.id),
+  ])
   if (!c) notFound()
   return (
     <main className="p-6">
       <EditeurCourrier
         nomProjet={projet.name}
+        contacts={contacts}
         initial={{
           id: c.id, projetId: c.projetId, reference: c.reference, objet: c.objet, type: c.type,
           dateEnvoi: c.dateEnvoi?.toISOString() ?? null, destinataire: c.destinataire, expediteur: c.expediteur,
