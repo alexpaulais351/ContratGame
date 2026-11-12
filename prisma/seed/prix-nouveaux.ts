@@ -7,7 +7,7 @@ export async function seedPrixNouveaux(prisma: PrismaClient, projetId: string) {
       {
         projetId, ordre: 0,
         numero: 'PN-001',
-        intitule: 'Fourniture et pose de traverses béton supplémentaires - zone PK 118',
+        intitule: 'Renforcement des fondations zone B',
         dateDevis: new Date('2026-02-12'),
         montantPresente: 48600,
         montantAccepte: 45200,
@@ -22,7 +22,7 @@ export async function seedPrixNouveaux(prisma: PrismaClient, projetId: string) {
       {
         projetId, ordre: 1,
         numero: 'PN-002',
-        intitule: 'Purge et évacuation de ballast pollué - tranchée drainante',
+        intitule: 'Purge et substitution de sol sous dallage',
         dateDevis: new Date('2026-05-20'),
         montantPresente: 72350,
         montantAccepte: null,

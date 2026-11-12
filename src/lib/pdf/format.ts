@@ -17,7 +17,7 @@ export const PDF_COULEURS = {
   rouge: VINCI.rouge,
 } as const
 
-/** "Chantier LGV Sud" → "Chantier_LGV_Sud" pour les noms de fichiers. */
+/** "Groupe scolaire Les Tilleuls" → "Groupe_scolaire_Les_Tilleuls" pour les noms de fichiers. */
 export function nomFichierSur(s: string): string {
   return s
     .normalize('NFD')

@@ -4,7 +4,7 @@ import { OngletsDE } from '@/components/modules/detail-estimatif/OngletsDE'
 import { Cotraitance } from '@/components/modules/detail-estimatif/Cotraitance'
 import { lireRepartition, type CoTraitantClient, type LigneDEClient } from '@/components/modules/detail-estimatif/types'
 
-export const metadata = { title: 'Co-traitance — Conduc Rail' }
+export const metadata = { title: 'Co-traitance — Contrat Game' }
 
 export default async function CotraitancePage({ params }: { params: { id: string } }) {
   const { projet } = await getProjetPourPage(params.id)

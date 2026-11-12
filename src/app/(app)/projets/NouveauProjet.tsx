@@ -10,8 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { creerProjet } from '@/actions/projets'
 
-export function NouveauProjet() {
-  const [open, setOpen] = useState(false)
+export function NouveauProjet({ ouvertParDefaut = false }: { ouvertParDefaut?: boolean }) {
+  const [open, setOpen] = useState(ouvertParDefaut)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [pending, start] = useTransition()

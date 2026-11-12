@@ -75,7 +75,7 @@ export const SECTIONS_BIDCOMP: SectionGabarit[] = [
     criteres: [
       b('Certification ISO 9001'),
       b('Certification ISO 45001 / MASE'),
-      n('Agrément / homologation SNCF Réseau', 3),
+      n('Certification / Avis Technique', 3),
       n('Plan d’assurance qualité (PAQ)', 1),
       n('Prévention / accidentologie', 1),
     ],

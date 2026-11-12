@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View } from '@react-pdf/renderer'
+import { Circle, Image, Path, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer'
 import type { Style } from '@react-pdf/types'
 import { PDF_COULEURS } from './format'
 import type { ProfilSociete } from '@/stores/profil'
@@ -37,7 +37,7 @@ export const pdfStyles = StyleSheet.create({
 
 type EnteteProps = { profil: ProfilSociete | null; nomProjet: string; style?: Style }
 
-/** Bande #004489 : logo utilisateur à gauche, "CONDUC RAIL" + projet à droite. */
+/** Bande #004489 : logo utilisateur à gauche, "CONTRAT GAME" + projet à droite. */
 export function EntetePDF({ profil, nomProjet }: EnteteProps) {
   return (
     <View style={pdfStyles.entete} fixed>
@@ -50,9 +50,12 @@ export function EntetePDF({ profil, nomProjet }: EnteteProps) {
         ) : null}
         {profil?.nomSociete ? <Text style={pdfStyles.societe}>{profil.nomSociete}</Text> : null}
       </View>
-      <View style={pdfStyles.droite}>
-        <Text style={pdfStyles.marque}>CONDUC RAIL</Text>
-        <Text style={pdfStyles.projet}>{nomProjet}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={pdfStyles.droite}>
+          <Text style={pdfStyles.marque}>CONTRAT GAME</Text>
+          <Text style={pdfStyles.projet}>{nomProjet}</Text>
+        </View>
+        <LogoPDF size={30} />
       </View>
     </View>
   )
@@ -63,7 +66,25 @@ export function PiedPagePDF({ gauche }: { gauche?: string }) {
   return (
     <View style={pdfStyles.pied} fixed>
       <Text>{gauche ?? ''}</Text>
+      <Text>Contrat Game · by EBGC</Text>
       <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
     </View>
+  )
+}
+
+/** Logo Contrat Game vectoriel (document + coche), bordé de blanc pour la bande bleue. */
+export function LogoPDF({ size = 30 }: { size?: number }) {
+  const B = PDF_COULEURS.enTete
+  const W = PDF_COULEURS.blanc
+  return (
+    <Svg viewBox="-4 -4 128 128" width={size} height={size}>
+      <Rect x={-4} y={-4} width={128} height={128} rx={28} fill={W} />
+      <Rect width={120} height={120} rx={24} fill={B} />
+      <Path d="M30 18 h36 l18 18 v60 a6 6 0 0 1-6 6 h-48 a6 6 0 0 1-6-6 v-72 a6 6 0 0 1 6-6z" fill="none" stroke={W} strokeWidth={7} strokeLinejoin="round" />
+      <Path d="M66 18 v18 h18" fill="none" stroke={W} strokeWidth={7} strokeLinejoin="round" />
+      <Path d="M38 46 h22 M38 60 h34 M38 74 h16" stroke={W} strokeWidth={5} strokeLinecap="round" />
+      <Circle cx={84} cy={84} r={20} fill={PDF_COULEURS.rouge} stroke={B} strokeWidth={4} />
+      <Path d="M75 84 l6 6 l12-13" stroke={W} strokeWidth={5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   )
 }

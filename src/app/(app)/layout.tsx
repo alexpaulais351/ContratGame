@@ -23,7 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           certifications: user.certifications,
         }}
       />
-      <Sidebar nomUtilisateur={user.name} />
+      <Sidebar nomUtilisateur={user.name} email={user.email} estAdmin={user.role === 'admin'} />
       <div className="min-w-0 flex-1 bg-white">{children}</div>
     </div>
   )

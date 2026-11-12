@@ -3,94 +3,90 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 type LigneSeed = [code: string, designation: string, unite: string, quantite: number, prixUnitaire: number]
 type ChapitreSeed = { code: string; designation: string; lignes: LigneSeed[] }
 
-/** DE de démo : renouvellement voie-ballast LGV (montants HT réalistes). */
+/** DE de démo : construction d'un groupe scolaire (montants HT réalistes). */
 const CHAPITRES: ChapitreSeed[] = [
   {
     code: '01',
     designation: 'Installations de chantier et travaux préparatoires',
     lignes: [
-      ['01.01', 'Installation, entretien et repli de la base travaux', 'Ft', 1, 185000],
-      ['01.02', 'Protection du personnel (annonceurs, sentinelles, ASP)', 'sem', 24, 6800],
-      ['01.03', "Études d'exécution et plans de récolement", 'Ft', 1, 42000],
-      ['01.04', 'Constat contradictoire des abords et accès chantier', 'u', 2, 1500],
+      ['01.01', 'Installation, entretien et repli de la base vie et des clôtures', 'Ft', 1, 95000],
+      ['01.02', 'Grue à tour et moyens de levage (location et exploitation)', 'mois', 10, 7800],
+      ['01.03', "Études d'exécution et plans de récolement", 'Ft', 1, 68000],
+      ['01.04', 'Constat contradictoire des existants et des avoisinants', 'u', 2, 1500],
     ],
   },
   {
     code: '02',
-    designation: 'Dépose de la voie existante',
+    designation: 'Terrassements généraux',
     lignes: [
-      ['02.01', 'Dépose de voie existante (rails UIC 60 + traverses bois)', 'ml', 8200, 18.5],
-      ['02.02', 'Évacuation et traitement des traverses bois créosotées', 't', 1650, 145],
-      ['02.03', 'Dégarnissage du ballast sur 30 cm sous traverse', 'm3', 9800, 22.4],
-      ['02.04', 'Évacuation du ballast pollué en ISDND', 't', 15600, 31.5],
+      ['02.01', 'Décapage de la terre végétale et mise en stock', 'm3', 3200, 6.8],
+      ['02.02', 'Fouilles en grande masse et en rigoles', 'm3', 7400, 11.5],
+      ['02.03', 'Évacuation des terres excédentaires en ISDI', 'm3', 4800, 19.5],
+      ['02.04', 'Remblais techniques et plateforme sous dallage', 'm3', 3600, 28.4],
     ],
   },
   {
     code: '03',
-    designation: 'Pose de voie neuve',
+    designation: 'Gros œuvre',
     lignes: [
-      ['03.01', 'Fourniture ballast 31,5/50 calibré', 't', 21400, 28.9],
-      ['03.02', 'Mise en œuvre et réglage du ballast', 'm3', 12500, 9.8],
-      ['03.03', 'Fourniture traverses béton monobloc M450', 'u', 13700, 68],
-      ['03.04', 'Pose de traverses béton (travelage 60 cm)', 'u', 13700, 12.5],
-      ['03.05', 'Fourniture rail 60E1 R260 en barres de 108 m', 'ml', 16400, 52.3],
-      ['03.06', 'Pose de rail 60E1 et attaches Fastclip', 'ml', 16400, 14.6],
-      ['03.07', 'Soudures aluminothermiques (procédé SkV)', 'u', 310, 420],
-      ['03.08', 'Libération des contraintes des LRS', 'ml', 8200, 3.9],
-      ['03.09', 'Bourrage-dressage mécanisé (3 passes)', 'ml', 8200, 6.2],
-      ['03.10', 'Stabilisation dynamique de la voie', 'ml', 8200, 1.85],
-      ['03.11', 'Meulage préventif des rails neufs', 'ml', 16400, 2.1],
+      ['03.01', 'Fondations superficielles : semelles filantes et isolées', 'm3', 640, 285],
+      ['03.02', 'Dallage béton armé sur terre-plein, ép. 15 cm', 'm2', 2900, 48.5],
+      ['03.03', 'Voiles béton armé banché', 'm3', 780, 345],
+      ['03.04', 'Planchers béton armé (prédalles et dalle de compression)', 'm2', 1850, 92],
+      ['03.05', 'Poteaux et poutres béton armé', 'm3', 310, 410],
+      ['03.06', 'Maçonnerie de blocs et doublages intérieurs', 'm2', 3400, 38.6],
     ],
   },
   {
     code: '04',
-    designation: 'Appareils de voie',
+    designation: 'Charpente, couverture et menuiseries',
     lignes: [
-      ['04.01', 'Dépose des appareils de voie existants', 'u', 4, 9500],
-      ['04.02', 'Fourniture et pose aiguillage 60E1 tg 0,034', 'u', 2, 285000],
-      ['04.03', 'Fourniture et pose aiguillage 60E1 tg 0,11', 'u', 2, 168000],
-      ['04.04', 'Réglage, soudures et contrôle des appareils', 'u', 4, 12500],
+      ['04.01', 'Charpente métallique de la toiture', 't', 62, 3850],
+      ['04.02', 'Couverture en bac acier et étanchéité des toitures-terrasses', 'm2', 2200, 118],
+      ['04.03', 'Menuiseries extérieures aluminium à rupture de pont thermique', 'm2', 640, 620],
+      ['04.04', 'Façades : isolation thermique par l’extérieur et bardage', 'm2', 2450, 135],
+      ['04.05', 'Menuiseries intérieures bois et blocs-portes', 'u', 118, 540],
     ],
   },
   {
     code: '05',
-    designation: 'Signalisation et équipements',
+    designation: 'Lots techniques et VRD',
     lignes: [
-      ['05.01', 'Dépose / repose crocodiles et balises KVB', 'u', 36, 1450],
-      ['05.02', 'Câblage et raccordements signalisation', 'ml', 2400, 38],
-      ['05.03', 'Essais et mise en service signalisation', 'Ft', 1, 35000],
-      ['05.04', 'Repérage kilométrique (plaques PK)', 'u', 34, 210],
+      ['05.01', 'Plomberie sanitaires et chauffage (pompe à chaleur)', 'Ft', 1, 485000],
+      ['05.02', 'Ventilation double flux et désenfumage', 'Ft', 1, 210000],
+      ['05.03', 'Électricité courants forts et courants faibles', 'Ft', 1, 380000],
+      ['05.04', 'Réseaux enterrés : eaux usées, eaux pluviales, bassin de rétention', 'ml', 1250, 168],
+      ['05.05', 'Voiries, parkings et cheminements extérieurs', 'm2', 3800, 74],
+      ['05.06', 'Espaces verts et plantations', 'm2', 2600, 22],
     ],
   },
 ]
 
 /**
  * Données de démo du module Détail Estimatif + Co-traitance :
- * 5 chapitres, 27 lignes, 2 co-traitants (VINCI mandataire + un partenaire signalisation)
- * et une répartition du PU sur les chapitres 04-05 (les autres lignes restent à répartir).
+ * 5 chapitres, 27 lignes, 2 co-traitants (VINCI mandataire + un partenaire lots techniques)
+ * et une répartition du PU sur le chapitre 05 (les autres lignes restent à répartir).
  */
 export async function seedDetailEstimatif(prisma: PrismaClient, projetId: string) {
   await prisma.ligneDE.deleteMany({ where: { projetId } })
   await prisma.coTraitant.deleteMany({ where: { projetId } })
 
   const vinci = await prisma.coTraitant.create({
-    data: { projetId, nom: 'VINCI Construction Ferroviaire', estMandataire: true, ordre: 0 },
+    data: { projetId, nom: 'VINCI Construction France', estMandataire: true, ordre: 0 },
   })
   const partenaire = await prisma.coTraitant.create({
-    data: { projetId, nom: 'Signalisation Rail Sud', estMandataire: false, ordre: 1 },
+    data: { projetId, nom: 'Entreprise Générale Partenaire', estMandataire: false, ordre: 1 },
   })
 
   /** Part du partenaire par ligne (le reste du PU va au mandataire). */
   const partPartenaire: Record<string, number> = {
-    '04.01': 0,
-    '04.02': 85000,
-    '04.03': 52000,
-    '04.04': 4500,
-    '05.01': 1450,
-    '05.02': 38,
-    '05.03': 17500,
+    '05.01': 310000,
+    '05.02': 150000,
+    '05.03': 380000,
     '05.04': 0,
-    '03.07': 0,
+    '05.05': 0,
+    '05.06': 22,
+    '04.05': 0,
   }
 
   const data: Prisma.LigneDECreateManyInput[] = []

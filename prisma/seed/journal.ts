@@ -30,7 +30,7 @@ function chunk(type: string, data: Buffer) {
   return Buffer.concat([len, td, crc])
 }
 
-/** PNG RGB : bandes horizontales aux couleurs données (ex. ballast / rail / ciel). */
+/** PNG RGB : bandes horizontales aux couleurs données (ex. ciel / terre / réseaux). */
 function pngBandes(largeur: number, hauteur: number, bandes: [number, number, number][]) {
   const ligne = 1 + largeur * 3
   const brut = Buffer.alloc(ligne * hauteur)
@@ -38,7 +38,7 @@ function pngBandes(largeur: number, hauteur: number, bandes: [number, number, nu
     const [r, g, b] = bandes[Math.min(bandes.length - 1, Math.floor((y / hauteur) * bandes.length))]
     brut[y * ligne] = 0
     for (let x = 0; x < largeur; x++) {
-      // traverses : stries verticales sombres dans la bande centrale
+      // stries verticales sombres dans la bande centrale
       const strie = y > hauteur * 0.4 && y < hauteur * 0.7 && x % 40 < 8
       const o = y * ligne + 1 + x * 3
       brut[o] = strie ? 90 : r
@@ -109,27 +109,27 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
   const categories = await prisma.categorieEvenement.findMany({ where: { projetId } })
   const cat = (nom: string) => categories.find((c) => c.nom === nom)
 
-  const photoVoie = fichier(
-    'photo-voie-pk118.png',
+  const photoReseaux = fichier(
+    'photo-reseaux-enterres.png',
     'image/png',
     pngBandes(480, 300, [
       [128, 180, 255], // ciel (bleu ciel VINCI)
-      [181, 171, 161], // ballast (gris chaud)
-      [194, 106, 50], // traverses (orange brun)
+      [181, 171, 161], // terre (gris chaud)
+      [194, 106, 50], // réseaux enterrés (orange brun)
       [181, 171, 161],
     ]),
   )
-  const photoBalast = fichier('livraison-ballast.png', 'image/png', pngBandes(400, 260, [[229, 239, 248], [181, 171, 161], [122, 165, 54]]))
+  const photoBeton = fichier('livraison-beton.png', 'image/png', pngBandes(400, 260, [[229, 239, 248], [181, 171, 161], [122, 165, 54]]))
   const pvReunion = fichier(
     'CR-reunion-lancement.pdf',
     'application/pdf',
     pdfTexte([
       'Compte rendu - Reunion de lancement',
-      'Chantier LGV Sud - lot 2',
+      'Groupe scolaire Les Tilleuls - construction neuve',
       '',
       'Presents : MOA, MOE, groupement',
       '- Planning general valide',
-      '- Phasage des interruptions temporaires de circulation',
+      '- Phasage des travaux de terrassement et de gros oeuvre',
       '- Prochaine reunion : 02/02/2026',
     ]),
   )
@@ -138,7 +138,7 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
     {
       date: '2026-01-08',
       titre: 'Réunion de lancement du chantier',
-      description: 'Réunion avec la MOA et la MOE : validation du planning général et du phasage des ITC.',
+      description: 'Réunion avec la MOA et la MOE : validation du planning général et du phasage des travaux.',
       categorie: 'Contrat',
       fichiers: [pvReunion],
     },
@@ -150,25 +150,25 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
     },
     {
       date: '2026-01-14',
-      titre: 'Diffusion des plans EXE voie indice A',
+      titre: 'Diffusion des plans EXE structure indice A',
       categorie: 'Étude diffusion',
     },
     {
       date: '2026-02-03',
-      titre: 'VISA refusé : note de calcul des appareils de voie',
-      description: 'Observations de la MOE sur la note de calcul des appareils de voie, reprise demandée sous 15 jours.',
+      titre: 'VISA refusé : note de calcul des fondations',
+      description: 'Observations de la MOE sur la note de calcul des fondations, reprise demandée sous 15 jours.',
       categorie: 'VISA étude',
     },
     {
       date: '2026-02-24',
-      titre: 'Découverte de réseaux non répertoriés PK 115+200',
-      description: 'Câbles de signalisation non reportés au DCE. Arrêt partiel de la zone et demande de dévoiement.',
+      titre: 'Découverte de réseaux enterrés non répertoriés',
+      description: 'Canalisations et fourreaux non reportés au DCE en limite nord du terrain. Arrêt partiel de la zone et demande de dévoiement.',
       categorie: 'SOS terrain',
-      fichiers: [photoVoie],
+      fichiers: [photoReseaux],
     },
     {
       date: '2026-02-25',
-      titre: 'Arrêt partiel de la zone PK 115',
+      titre: 'Arrêt partiel de la zone nord',
       categorie: 'Alerte',
     },
     {
@@ -184,25 +184,26 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
     },
     {
       date: '2026-04-07',
-      titre: 'Livraison ballast retardée de 10 jours',
-      description: 'Carrière en arrêt technique. Impact sur la phase de relevage.',
+      titre: 'Intempéries : arrêt de chantier de 5 jours',
+      description: 'Fortes pluies : terrassements et coulages impossibles. Impact sur la phase de gros œuvre.',
       categorie: 'Alerte',
-      fichiers: [photoBalast],
+      fichiers: [photoBeton],
     },
     {
       date: '2026-04-09',
-      titre: 'Replanification des ITC de mai',
+      titre: 'Livraison béton retardée de 10 jours',
+      description: 'Centrale à béton en arrêt technique. Replanification des coulages de mai.',
       categorie: 'Suivi / impact',
     },
     {
       date: '2026-05-21',
-      titre: 'VISA favorable : appareils de voie indice B',
+      titre: 'VISA favorable : plans EXE structure indice B',
       categorie: 'VISA étude',
     },
     {
       date: '2026-06-15',
-      titre: 'Réception partielle section 1',
-      description: 'Réception avec réserves mineures (repères kilométriques).',
+      titre: 'Réception partielle du gros œuvre',
+      description: 'Réception avec réserves mineures (reprises de bétons apparents).',
       categorie: 'Contrat',
     },
     {
@@ -238,15 +239,15 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
   const evReseaux = evenements[4]
   await prisma.ligneFicheEcart.createMany({
     data: [
-      { projetId, ordre: 0, estChapitre: true, etude: 'Voie et réseaux', chapitre: 'Voie et réseaux' },
+      { projetId, ordre: 0, estChapitre: true, etude: 'Terrassements et réseaux', chapitre: 'Terrassements et réseaux' },
       {
         projetId,
         ordre: 1,
         evenementId: ids[evReseaux.titre],
         etude: `${evReseaux.titre} (${evReseaux.date.split('-').reverse().join('/')})`,
-        prevuDCE: 'Aucun réseau de signalisation recensé entre PK 115 et PK 116.',
-        phaseTransitoire: 'Protection provisoire des câbles et balisage de la zone.',
-        exe: 'Dévoiement définitif des câbles sous fourreaux TPC.',
+        prevuDCE: 'Aucun réseau enterré recensé en limite nord du terrain.',
+        phaseTransitoire: 'Protection provisoire des réseaux et balisage de la zone.',
+        exe: 'Dévoiement définitif des réseaux sous fourreaux.',
         impacts: 'Arrêt partiel de la zone, reprise du phasage des terrassements.',
         delaisImpactes: '+ 8 jours',
         coutImpactes: '18 500 € HT (estimation)',
@@ -254,11 +255,11 @@ export async function seedJournal(prisma: PrismaClient, projetId: string) {
       {
         projetId,
         ordre: 2,
-        etude: 'Épaisseur de ballast sous traverse',
-        prevuDCE: '30 cm sous traverse',
-        phaseTransitoire: '25 cm (circulation à vitesse réduite)',
-        exe: '35 cm demandés par la MOE (VISA indice B)',
-        impacts: 'Surconsommation de ballast, rotation supplémentaire de trains travaux.',
+        etude: 'Profondeur des fondations zone B',
+        prevuDCE: 'Semelles filantes ancrées à 1,20 m',
+        phaseTransitoire: 'Terrassement provisoire à 1,50 m',
+        exe: 'Ancrage à 2,00 m demandé par la MOE (VISA indice B)',
+        impacts: 'Surconsommation de béton, purge de sol supplémentaire.',
         delaisImpactes: '+ 3 jours',
         coutImpactes: '42 000 € HT',
       },
