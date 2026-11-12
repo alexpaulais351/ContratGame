@@ -10,7 +10,7 @@ async function main() {
   //  - chaque administrateur actif sans projet d'exemple en reçoit un.
   if (process.env.SEED_SI_VIDE === '1') {
     const r = await completerProjetsExemple(prisma)
-    console.log(`Projets d'exemple : ${r.projets}, événements ajoutés : ${r.evenementsAjoutes}, périodes ajoutées : ${r.periodesAjoutees}`)
+    console.log('Projets d’exemple complétés :', JSON.stringify(r))
     const admins = await prisma.user.findMany({ where: { role: 'admin', statut: 'approuve' }, select: { id: true } })
     for (const a of admins) if (await assurerProjetExemple(prisma, a.id)) console.log('Projet d’exemple créé pour un administrateur')
     return
