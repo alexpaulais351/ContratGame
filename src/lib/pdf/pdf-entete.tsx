@@ -66,7 +66,11 @@ export function PiedPagePDF({ gauche }: { gauche?: string }) {
   return (
     <View style={pdfStyles.pied} fixed>
       <Text>{gauche ?? ''}</Text>
-      <Text>Contrat Game · by EBGC</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+        <Text>Contrat Game · by</Text>
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <Image src={urlEbgc()} style={{ height: 9, width: 25.4 }} />
+      </View>
       <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`} />
     </View>
   )
@@ -87,4 +91,10 @@ export function LogoPDF({ size = 30 }: { size?: number }) {
       <Path d="M75 84 l6 6 l12-13" stroke={W} strokeWidth={5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   )
+}
+
+/** URL absolue du logo EBGC couleur (react-pdf la charge côté navigateur). */
+function urlEbgc(): string {
+  const origine = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${origine}/ebgc-couleur.png`
 }

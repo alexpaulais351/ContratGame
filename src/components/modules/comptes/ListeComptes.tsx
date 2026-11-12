@@ -8,11 +8,23 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { changerRole, reinitialiserMotDePasse, supprimerCompte } from '@/actions/comptes'
+import { changerRole, changerStatut, reinitialiserMotDePasse, supprimerCompte } from '@/actions/comptes'
 import { formatDateFR } from '@/lib/utils'
 import type { CompteDTO } from './types'
 
 type DialogEtat = { mode: 'mdp' | 'suppr'; compte: CompteDTO } | null
+
+const STATUTS: Record<CompteDTO['statut'], { label: string; cls: string }> = {
+  approuve: { label: 'Actif', cls: 'bg-vinci-vert-clair text-black border-vinci-vert' },
+  en_attente: { label: 'En attente', cls: 'bg-vinci-jaune-clair text-black border-vinci-jaune' },
+  refuse: { label: 'Refusé', cls: 'bg-vinci-rouge-tres-clair text-vinci-rouge-fonce border-vinci-rouge' },
+  suspendu: { label: 'Suspendu', cls: 'bg-vinci-gris-clair text-vinci-texte-secondaire border-vinci-gris' },
+}
+
+function BadgeStatut({ statut }: { statut: CompteDTO['statut'] }) {
+  const s = STATUTS[statut]
+  return <span className={`inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ${s.cls}`}>{s.label}</span>
+}
 
 export function ListeComptes({ comptes, moiId }: { comptes: CompteDTO[]; moiId: string }) {
   const router = useRouter()
@@ -44,6 +56,7 @@ export function ListeComptes({ comptes, moiId }: { comptes: CompteDTO[]; moiId: 
               <th>Nom</th>
               <th>Email</th>
               <th className="w-44">Rôle</th>
+              <th>Statut</th>
               <th className="text-center">Projets</th>
               <th>Créé le</th>
               <th className="text-right">Actions</th>
@@ -76,10 +89,29 @@ export function ListeComptes({ comptes, moiId }: { comptes: CompteDTO[]; moiId: 
                       </SelectContent>
                     </Select>
                   </td>
+                  <td>
+                    <BadgeStatut statut={c.statut} />
+                  </td>
                   <td className="text-center tabular-nums">{c.nbProjets}</td>
                   <td>{formatDateFR(c.createdAt)}</td>
                   <td>
                     <div className="flex justify-end gap-2">
+                      {!estMoi && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="btn-toolbar"
+                          disabled={pending || (dernierAdmin && c.statut === 'approuve')}
+                          onClick={() =>
+                            executer(
+                              () => changerStatut(c.id, c.statut === 'approuve' ? 'suspendu' : 'approuve'),
+                              c.statut === 'approuve' ? 'Compte suspendu' : 'Compte réactivé',
+                            )
+                          }
+                        >
+                          {c.statut === 'approuve' ? 'Suspendre' : 'Réactiver'}
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" className="btn-toolbar" onClick={() => { setMdp(''); setDialog({ mode: 'mdp', compte: c }) }}>
                         <KeyRound className="mr-1 h-4 w-4" /> Mot de passe
                       </Button>

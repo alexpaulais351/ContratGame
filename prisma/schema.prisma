@@ -13,6 +13,7 @@ model User {
   name           String
   password       String
   role           String         @default("user") // "user" | "admin"
+  statut         String         @default("approuve") // "en_attente" | "approuve" | "refuse" | "suspendu"
   logoSociete    String?        @db.Text
   nomSociete     String?
   adresseSociete String?

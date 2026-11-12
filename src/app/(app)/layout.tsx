@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { AppShell } from '@/components/layout/AppShell'
 import { ProfilHydrator } from '@/components/layout/ProfilHydrator'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -9,8 +9,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session?.user?.id) redirect('/login')
   const user = await prisma.user.findUnique({ where: { id: session.user.id } })
   if (!user) redirect('/login')
+  // Compte non validé (en attente, refusé, suspendu) : aucun accès aux pages de l'outil.
+  if (user.statut !== 'approuve') redirect('/compte-en-attente')
+  const estAdmin = user.role === 'admin'
+  const demandesEnAttente = estAdmin ? await prisma.user.count({ where: { statut: 'en_attente' } }) : 0
   return (
-    <div className="flex min-h-screen">
+    <>
       <ProfilHydrator
         profil={{
           nom: user.name,
@@ -23,8 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           certifications: user.certifications,
         }}
       />
-      <Sidebar nomUtilisateur={user.name} email={user.email} estAdmin={user.role === 'admin'} />
-      <div className="min-w-0 flex-1 bg-white">{children}</div>
-    </div>
+      <AppShell utilisateur={{ nom: user.name, email: user.email, estAdmin, demandesEnAttente }}>{children}</AppShell>
+    </>
   )
 }
