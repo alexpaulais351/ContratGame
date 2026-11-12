@@ -5,7 +5,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { formatDateFR } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
-import { Logo } from '@/components/layout/Logo'
+import { Ruban } from '@/components/layout/Ruban'
 import { EbgcCouleur } from '@/components/layout/EbgcCouleur'
 import { PresentationSite } from '@/components/modules/accueil/PresentationSite'
 
@@ -46,14 +46,12 @@ export default async function AccueilPage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8 p-4 sm:p-6">
-      <section className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-        <Logo size={128} className="h-24 w-24 shrink-0 rounded-[22px] sm:h-32 sm:w-32 sm:rounded-[28px]" />
-        <div>
-          <h1 className="text-3xl font-bold text-vinci-bleu">Contrat Game</h1>
-          <p className="mt-2 text-black/80">Outil d&apos;aide à la gestion contractuelle et financière de vos chantiers.</p>
-          <p className="mt-1 text-sm text-black/70">Bonjour {user.name}.</p>
-        </div>
-      </section>
+      <Ruban
+        variante="hero"
+        titre="Contrat Game"
+        sousTitre="Outil d'aide à la gestion contractuelle et financière de vos chantiers."
+        complement={<>Bonjour {user.name}.</>}
+      />
 
       <section aria-label="Actions" className="grid gap-4 sm:grid-cols-2">
         {actions.map(({ href, titre, texte, icon: Icon }) => (
