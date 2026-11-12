@@ -83,7 +83,7 @@ export function PrixNouveauxPDF({
   return (
     <Document title={`Prix nouveaux - ${nomProjet}`}>
       <Page size="A4" orientation="landscape" style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet={nomProjet} />
+        <EntetePDF profil={profil} nomProjet={nomProjet} titreDocument="Prix nouveaux" />
         <Text style={pdfStyles.titre}>Suivi des prix nouveaux</Text>
         <Text style={pdfStyles.sousTitre}>
           {lignes.length} prix nouveau{lignes.length > 1 ? 'x' : ''} — édité le {formatDateFR(new Date())}

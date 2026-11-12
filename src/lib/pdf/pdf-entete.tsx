@@ -14,8 +14,8 @@ export const pdfStyles = StyleSheet.create({
   logoFond: { backgroundColor: PDF_COULEURS.blanc, padding: 3, borderRadius: 2 },
   societe: { color: PDF_COULEURS.blanc, fontSize: 10, fontFamily: 'Helvetica-Bold' },
   droite: { alignItems: 'flex-end' },
-  marque: { color: PDF_COULEURS.blanc, fontSize: 11, fontFamily: 'Helvetica-Bold', textAlign: 'right' },
-  projet: { color: PDF_COULEURS.blanc, fontSize: 9 },
+  marque: { color: PDF_COULEURS.blanc, fontSize: 13, fontFamily: 'Helvetica-Bold', textAlign: 'right' },
+  projet: { color: PDF_COULEURS.blanc, fontSize: 8.5, textAlign: 'right', marginTop: 2 },
   titre: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: PDF_COULEURS.enTete, marginBottom: 8 },
   sousTitre: { fontSize: 9, color: PDF_COULEURS.texteSecondaire, marginBottom: 10 },
   pied: {
@@ -35,10 +35,10 @@ export const pdfStyles = StyleSheet.create({
   num: { textAlign: 'right' },
 })
 
-type EnteteProps = { profil: ProfilSociete | null; nomProjet: string; style?: Style }
+type EnteteProps = { profil: ProfilSociete | null; nomProjet: string; titreDocument: string; style?: Style }
 
-/** Bande #004489 : logo du profil utilisateur à gauche (à défaut, nom de société), projet à droite. */
-export function EntetePDF({ profil, nomProjet }: EnteteProps) {
+/** Bande #004489 : logo du profil utilisateur à gauche (à défaut, nom de société), titre du document + projet à droite. */
+export function EntetePDF({ profil, nomProjet, titreDocument }: EnteteProps) {
   return (
     <View style={pdfStyles.entete} fixed>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -52,7 +52,8 @@ export function EntetePDF({ profil, nomProjet }: EnteteProps) {
         ) : null}
       </View>
       <View style={[pdfStyles.droite, { maxWidth: '55%' }]}>
-        <Text style={pdfStyles.marque}>{nomProjet}</Text>
+        <Text style={pdfStyles.marque}>{titreDocument}</Text>
+        <Text style={pdfStyles.projet}>{nomProjet}</Text>
       </View>
     </View>
   )

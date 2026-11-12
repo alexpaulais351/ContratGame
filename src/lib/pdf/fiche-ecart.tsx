@@ -28,7 +28,7 @@ export function FicheEcartPDF({ lignes, profil, nomProjet }: { lignes: LigneFich
   return (
     <Document title={`Fiche écart - ${nomProjet}`}>
       <Page size="A4" orientation="landscape" style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet={nomProjet} />
+        <EntetePDF profil={profil} nomProjet={nomProjet} titreDocument="Fiche écart" />
         <Text style={pdfStyles.titre}>Fiche écart</Text>
         <Text style={pdfStyles.sousTitre}>
           {nbEcarts} écart{nbEcarts > 1 ? 's' : ''} — édité le {formatDateFR(new Date())}

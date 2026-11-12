@@ -32,7 +32,7 @@ export function SituationPDF({ profil, nomProjet, numero, libelle, periode, stat
   return (
     <Document title={`Situation n°${numero}`}>
       <Page size="A4" orientation="landscape" style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet={nomProjet} />
+        <EntetePDF profil={profil} nomProjet={nomProjet} titreDocument="Situation de travaux" />
         <Text style={pdfStyles.titre}>
           Situation de travaux n°{numero}{libelle ? ` — ${libelle}` : ''}
         </Text>

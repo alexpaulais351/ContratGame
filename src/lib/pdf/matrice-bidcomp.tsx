@@ -75,7 +75,7 @@ export function MatriceBidCompPDF({ matrice: m, profil, nomProjet }: { matrice: 
   return (
     <Document title={`Matrice décisionnelle — ${m.titre}`} author="Contrat Game">
       <Page size="A4" orientation="landscape" style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet={nomProjet} />
+        <EntetePDF profil={profil} nomProjet={nomProjet} titreDocument="Matrice décisionnelle" />
         <Text style={pdfStyles.titre}>Matrice décisionnelle d&apos;offres fournisseurs — {m.titre}</Text>
 
         {/* En-tête de la matrice */}
