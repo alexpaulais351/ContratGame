@@ -6,7 +6,7 @@ import {
 } from './dates'
 import { interetsMoratoires, penalitesRetard, retenueGarantie, revisionPrix } from './calculs'
 import { VARIANTES_DGD, calculerEcheancesDGD, polygoneFleche, varianteDGD } from './dgd'
-import { ASSURANCES, FIN_FRISE } from './assurances'
+import { ASSURANCES, ASSURANCES_FRISE, BONS_REFLEXES, FIN_FRISE } from './assurances'
 import { DELAIS_CLES, THEMES_DELAIS } from './delais-cles'
 
 test('dates : validation et arithmétique', () => {
@@ -132,5 +132,9 @@ test('DGD : géométrie cohérente (boîtes dans le canevas)', () => {
 
 test('données : assurances et délais clés', () => {
   for (const a of ASSURANCES) for (const s of a.segments) assert.ok(s.de < s.a && s.a <= FIN_FRISE, a.cle)
+  assert.equal(new Set(ASSURANCES.map((a) => a.cle)).size, ASSURANCES.length)
+  assert.deepEqual(ASSURANCES_FRISE.map((a) => a.cle), ASSURANCES.filter((a) => a.segments.length).map((a) => a.cle))
+  assert.ok(ASSURANCES.some((a) => a.segments.length === 0), 'au moins une fiche hors frise (auto, drone)')
+  assert.ok(BONS_REFLEXES.every((b) => b.reflexes.every((r) => r.si && r.alors && r.sanction)))
   for (const d of DELAIS_CLES) assert.ok(THEMES_DELAIS.includes(d.theme))
 })

@@ -7,7 +7,9 @@
  *  - C. civ. art. 1792, 1792-2, 1792-3, 1792-4-1 à 1792-4-3, 1792-6, 1253 (troubles du voisinage), 2224, 2226, 2241 ;
  *  - C. assur. art. L113-2 (déclaration de sinistre), L114-1 (prescription biennale), L124-3 (action directe),
  *    L211-1, L241-1, L241-2, L242-1 (DO : 60 j / 90 j), L243-1-1 (ouvrages exclus) ;
- *  - CCAG Travaux 2021 art. 8, 41.6, 44.1, 44.2.
+ *  - CCAG Travaux 2021 art. 8, 41.6, 44.1, 44.2 ; C. com. art. L133-3 (réserves au transporteur) ;
+ *  - Guide des assurances 2026 — Divisions Bâtiment France / Génie Civil France (14e éd., usage interne) :
+ *    procédure d'instruction DO, règles « groupe », polices bris de machine, multirisque, flotte, transport.
  * Outil d'aide : ne remplace pas l'analyse des contrats d'assurance et des pièces du marché.
  */
 import type { NatureCouverture } from '@/lib/boite-a-outils/assurances'
@@ -32,6 +34,11 @@ export type Probleme =
   | 'pollution'
   | 'defaut_conception'
   | 'entreprise_liquidee'
+  | 'dommage_existant'
+  | 'reclamation_tiers'
+  | 'incendie_base_vie'
+  | 'sinistre_auto'
+  | 'avarie_transport'
 
 export type Moment = 'avant_reception' | 'reception' | 'annee1' | 'an1_2' | 'an2_10' | 'plus10'
 export type Role = 'moa' | 'entreprise' | 'sous_traitant'
@@ -61,9 +68,14 @@ export const PROBLEMES: { cle: Probleme; libelle: string; groupe: string }[] = [
   { cle: 'vol_chantier', libelle: 'Vol ou vandalisme sur le chantier (matériaux, ouvrages, matériel)', groupe: 'Sinistres de chantier' },
   { cle: 'dommage_voisin', libelle: 'Dommage à un tiers / riverain / bâtiment voisin pendant les travaux', groupe: 'Sinistres de chantier' },
   { cle: 'blessure_tiers', libelle: 'Blessure d’un tiers (ou d’un salarié) sur le chantier', groupe: 'Sinistres de chantier' },
+  { cle: 'dommage_existant', libelle: 'Dommage à un ouvrage existant du maître d’ouvrage (réhabilitation, extension, ouvrage voisin confié)', groupe: 'Sinistres de chantier' },
+  { cle: 'reclamation_tiers', libelle: 'Réclamation, mise en cause ou assignation reçue d’un tiers', groupe: 'Sinistres de chantier' },
   { cle: 'dommage_sous_traitant', libelle: 'Dommage causé par un sous-traitant', groupe: 'Sinistres de chantier' },
-  { cle: 'dommage_engin', libelle: 'Dommage à un engin ou au matériel (ou causé par un engin)', groupe: 'Sinistres de chantier' },
-  { cle: 'pollution', libelle: 'Pollution accidentelle (déversement d’hydrocarbures, rejet, déchets)', groupe: 'Sinistres de chantier' },
+  { cle: 'pollution', libelle: 'Atteinte à l’environnement (déversement d’hydrocarbures, rejet, pollution progressive)', groupe: 'Sinistres de chantier' },
+  { cle: 'dommage_engin', libelle: 'Engin ou matériel cassé, volé ou renversé (loué ou en propriété) — ou dommage causé par un engin', groupe: 'Matériels, locaux, véhicules' },
+  { cle: 'incendie_base_vie', libelle: 'Incendie, dégât des eaux ou vol dans la base vie / les bureaux de chantier', groupe: 'Matériels, locaux, véhicules' },
+  { cle: 'sinistre_auto', libelle: 'Accident ou vol d’un véhicule de société, de fonction ou personnel en mission', groupe: 'Matériels, locaux, véhicules' },
+  { cle: 'avarie_transport', libelle: 'Matériel ou fourniture endommagé pendant le transport ou la livraison', groupe: 'Matériels, locaux, véhicules' },
 ]
 
 export const MOMENTS: { cle: Moment; libelle: string }[] = [
@@ -83,7 +95,7 @@ export const ROLES: { cle: Role; libelle: string }[] = [
 
 export const TYPES_OUVRAGE: { cle: TypeOuvrage; libelle: string }[] = [
   { cle: 'soumis', libelle: 'Bâtiment ou ouvrage soumis à l’assurance obligatoire' },
-  { cle: 'exclu', libelle: 'Ouvrage exclu de l’obligation (art. L243-1-1 C. assur. : certains ouvrages de génie civil, VRD, ferroviaires…)' },
+  { cle: 'exclu', libelle: 'Ouvrage non soumis (art. L243-1-1 C. assur. : infrastructures routières, ferroviaires, portuaires, ouvrages maritimes, réseaux, voiries…)' },
   { cle: 'inconnu', libelle: 'Je ne sais pas' },
 ]
 
@@ -95,7 +107,8 @@ export const SITUATION_DEFAUT: Situation = {
 
 /** Clés des garanties : celles de la frise (lib/boite-a-outils/assurances) + responsabilités sans assurance dédiée. */
 export type CleGarantie =
-  | 'trc' | 'rc' | 'gpa' | 'biennale' | 'rcd' | 'do' | 'cnr' | 'ccrd' | 'st' | 'engins' | 'env'
+  | 'trc' | 'rc' | 'gpa' | 'biennale' | 'rcd' | 'rcdgc' | 'do' | 'cnr' | 'ccrd' | 'st' | 'bet' | 'env'
+  | 'engins' | 'bdm' | 'trs' | 'transport' | 'nautique' | 'auto' | 'drone'
   | 'contractuelle' | 'voisinage' | 'aucune'
 
 export type GarantieMobilisable = {
@@ -144,6 +157,20 @@ const G = {
     ({ cle: 'contractuelle', libelle: 'Responsabilité contractuelle de l’entreprise', nature: 'responsabilite', principale, commentaire }),
   st: (principale = false): GarantieMobilisable =>
     ({ cle: 'st', libelle: 'Assurances du sous-traitant (RC, décennale)', nature: 'facultative', principale, commentaire: 'Recours de l’entreprise principale contre son sous-traitant et l’assureur de celui-ci.' }),
+  rcdgc: (principale = false, commentaire = 'Si une assurance décennale a été exigée par le marché et souscrite (police RCD génie civil, intégration de l’opération).'): GarantieMobilisable =>
+    ({ cle: 'rcdgc', libelle: 'RC décennale des ouvrages non soumis (génie civil)', nature: 'facultative', principale, commentaire }),
+  bdm: (principale = true, commentaire = 'Bris, destruction, vol, renversement des matériels loués ou en propriété (valeur catalogue ≤ 2 M€ HT) ; franchise 10 %, mini 5 000 €, maxi 25 000 €.'): GarantieMobilisable =>
+    ({ cle: 'bdm', libelle: 'Bris de machine (matériels loués ou en propriété)', nature: 'facultative', principale, commentaire }),
+  engins: (principale = false, commentaire = 'Dommages causés aux tiers par l’engin en circulation : police flotte (engins non immatriculés assurés automatiquement).'): GarantieMobilisable =>
+    ({ cle: 'engins', libelle: 'RC circulation des engins (police flotte)', nature: 'obligatoire', principale, commentaire }),
+  trs: (principale = true, commentaire = 'Multirisque « tous risques sauf » : bases vie et bungalows garantis sans déclaration préalable.'): GarantieMobilisable =>
+    ({ cle: 'trs', libelle: 'Multirisque bureaux et bases vie (TRS)', nature: 'facultative', principale, commentaire }),
+}
+
+/** Règle interne : sinistres à signaler à la Direction des Assurances (Guide des assurances 2026). */
+const ETAPE_REGLE_GROUPE: EtapeAction = {
+  texte: 'Règle groupe : enjeu ≥ 500 K€ (≥ 150 K€ en corporel), pollution ou atteinte à l’image du groupe → informer la Direction des Assurances, qui gère le dossier avec la filiale ; sinon déclaration au courtier gestionnaire (formulaire sur Dat@ssur)',
+  source: 'Guide des assurances 2026',
 }
 
 const DOCS_BASE = ['Marché (AE, CCAP, CCTP) et avenants', 'Attestations d’assurance des intervenants valables à la date d’ouverture du chantier']
@@ -158,9 +185,12 @@ const ETAPE_DECLARATION_RC: EtapeAction = {
 
 const ETAPES_DO: EtapeAction[] = [
   { texte: 'Le MOA déclare le sinistre à l’assureur dommages-ouvrage par écrit (LRAR) : n° de police, adresse, date de réception, date d’apparition et description des désordres', source: 'C. assur. art. L242-1 et annexe II art. A243-1' },
-  { texte: 'L’assureur DO notifie sa position sur la mise en jeu des garanties (après rapport de l’expert)', delai: '60 jours à compter de la réception de la déclaration', source: 'C. assur. art. L242-1' },
-  { texte: 'L’assureur DO présente une offre d’indemnité en cas d’acceptation', delai: '90 jours à compter de la réception de la déclaration', source: 'C. assur. art. L242-1' },
-  { texte: 'À défaut de réponse dans les délais : l’assuré peut engager les travaux après l’avoir notifié à l’assureur ; l’indemnité est majorée d’intérêts (double du taux légal)', source: 'C. assur. art. L242-1', aVerifier: true },
+  { texte: 'Déclaration incomplète : l’assureur dispose de 10 jours pour réclamer les pièces manquantes ; à défaut, elle est réputée complète. Prendre les mesures d’urgence pour éviter l’aggravation', delai: '10 jours', source: 'C. assur. annexe II art. A243-1' },
+  { texte: 'Sinistre évalué à moins de 1 930 € TTC ou déclaration manifestement injustifiée : refus ou offre sans expertise (l’assuré peut contester et demander une expertise)', delai: '15 jours', source: 'Annexe II art. A243-1 ; Guide des assurances 2026' },
+  { texte: 'L’assureur DO notifie sa position sur la mise en jeu des garanties, après transmission préalable du rapport d’expertise ; à défaut, la garantie est acquise', delai: '60 jours à compter de la réception de la déclaration', source: 'C. assur. art. L242-1' },
+  { texte: 'L’assureur DO présente une offre d’indemnité en cas d’acceptation (prolongation possible jusqu’à 225 jours pour difficultés techniques exceptionnelles, avec l’accord de l’assuré) ; paiement dans les 15 jours de l’acceptation, avance des ¾ en cas de refus de l’offre', delai: '90 jours à compter de la réception de la déclaration', source: 'C. assur. art. L242-1 et annexe II art. A243-1' },
+  { texte: 'À défaut de réponse dans les délais : l’assuré peut engager les travaux après l’avoir notifié à l’assureur ; l’indemnité est majorée de plein droit d’un intérêt égal au double du taux de l’intérêt légal', source: 'C. assur. art. L242-1' },
+  { texte: 'Côté entreprise : si les travaux en cause ont été sous-traités, transmettre à l’expert l’attestation, le marché et les coordonnées du sous-traitant pour qu’il soit convoqué ; ne jamais réparer sans la validation de l’expert', source: 'Guide des assurances 2026' },
   { texte: 'Action contre l’assureur DO : prescription de 2 ans à compter de l’événement (refus, absence de réponse…)', delai: '2 ans', source: 'C. assur. art. L114-1', aVerifier: true },
 ]
 
@@ -182,7 +212,7 @@ const libelleMoment = (m: Moment) => MOMENTS.find((x) => x.cle === m)?.libelle ?
 function desordreDecennal(s: Situation, r: Recommandation, nature: string) {
   const exclu = s.ouvrage === 'exclu'
   if (exclu)
-    r.alertes.push('Ouvrage exclu de l’obligation d’assurance (C. assur. art. L243-1-1) : la responsabilité décennale existe mais l’assurance décennale et la DO peuvent ne pas avoir été souscrites. Vérifier le CCAP (CCAG 2021 art. 8.1.2).')
+    r.alertes.push('Ouvrage non soumis à l’obligation d’assurance (C. assur. art. L243-1-1) : la responsabilité décennale existe, mais il n’y a en principe ni DO ni assurance décennale obligatoire. Vérifier si le CCAP a exigé une assurance décennale (police RCD génie civil intégrée pour l’opération).')
   switch (s.moment) {
     case 'avant_reception':
       r.garanties.push(G.contractuelle(true, 'Avant réception, l’entreprise reste gardienne de l’ouvrage et doit reprendre les ouvrages défectueux à ses frais.'))
@@ -216,7 +246,7 @@ function desordreDecennal(s: Situation, r: Recommandation, nature: string) {
         { texte: 'Notifier le désordre par écrit à l’entreprise (LRAR) en fixant un délai d’intervention', delai: 'Dans l’année suivant la réception', source: 'C. civ. art. 1792-6' },
         { texte: 'À défaut d’exécution : mise en demeure, puis exécution aux frais et risques de l’entreprise', source: 'C. civ. art. 1792-6 ; CCAG Travaux 2021 art. 41.6' },
         { texte: 'Le MOA peut prolonger le délai de garantie tant que les travaux ne sont pas achevés', source: 'CCAG Travaux 2021 art. 44.2' },
-        { texte: 'Désordre décennal non repris après mise en demeure : déclarer à l’assureur DO', source: 'C. assur. art. L242-1' },
+        { texte: 'Désordre décennal non repris : déclarer à l’assureur DO seulement après une mise en demeure restée infructueuse (sans réponse dans un délai raisonnable ou refus de l’entreprise)', source: 'C. assur. art. L242-1 ; Guide des assurances 2026' },
         { texte: 'Conserver la retenue de garantie jusqu’à la levée des réserves', source: 'CCP art. R2191-35' },
       )
       r.documents.push(...DOCS_RECEPTION, ...DOCS_CONSTAT, 'Copie de la mise en demeure et de son accusé de réception')
@@ -229,6 +259,7 @@ function desordreDecennal(s: Situation, r: Recommandation, nature: string) {
       r.garanties.push(G.do(true, 'Le MOA déclare d’abord à son assureur DO, qui préfinance puis exerce ses recours.'))
       r.garanties.push(G.rcd(true, 'Responsabilité décennale de plein droit du (des) constructeur(s) ayant réalisé l’ouvrage, couverte par leur assurance RCD.'))
       if (s.doSouscrite === 'non') r.garanties[0] = G.do(false, 'Pas de DO souscrite : le MOA agit directement contre les constructeurs et leurs assureurs RCD.')
+      if (exclu) r.garanties.push(G.rcdgc(false))
       r.pourquoi.push(`Désordre apparu ${libelleMoment(s.moment).toLowerCase()}, de nature ${nature} : il relève de la garantie décennale (C. civ. art. 1792), à condition d’avoir été caché lors de la réception.`)
       r.quiContreQui.push(
         { qui: 'Maître d’ouvrage', contre: 'Assureur DO', comment: 'Déclaration de sinistre (LRAR) — préfinancement des réparations.' },
@@ -246,6 +277,7 @@ function desordreDecennal(s: Situation, r: Recommandation, nature: string) {
       )
       r.courriers.push({ type: 'transmission', libelle: 'Transmission de documents (déclaration de sinistre)' })
       r.surligner.push('do', 'rcd')
+      if (exclu) r.surligner.push('rcdgc')
       break
     case 'plus10':
       r.garanties.push({ cle: 'aucune', libelle: 'Plus de garantie décennale', nature: 'responsabilite', principale: true, commentaire: 'Les actions contre les constructeurs sont prescrites 10 ans après la réception (C. civ. art. 1792-4-1 et 1792-4-3).' })
@@ -422,8 +454,15 @@ const REGLES: Record<Probleme, Regle> = {
       { texte: 'Événement naturel exceptionnel : signaler par écrit au MOA (demande éventuelle d’indemnisation au titre des pertes et avaries / force majeure)', source: 'CCAG Travaux 2021 art. 17', aVerifier: true },
       { texte: 'Attendre l’accord de l’expert avant de reconstruire' },
     )
+    if (s.trcSouscrite !== 'non')
+      r.etapes.push({ texte: 'TRC souscrite par le MOA : le sinistre se déclare sur sa police (lui demander de déclarer sans délai) ; ne jamais faire état de la police TRC annuelle du groupe. Police du groupe : franchise de 20 % du sinistre (mini 45 000 €, maxi 100 000 €)', source: 'Guide des assurances 2026' })
     r.documents.push(...DOCS_CONSTAT, 'Police TRC et conditions particulières (franchise)', 'Bulletins météo (Météo-France) si événement climatique', 'Journal de chantier')
-    r.pieges.push('Déclarer hors délai peut entraîner une déchéance de garantie si l’assureur prouve un préjudice (C. assur. art. L113-2).', 'Reconstruire avant l’expertise fait perdre les preuves.')
+    r.pieges.push(
+      'Déclarer hors délai peut entraîner une déchéance de garantie si l’assureur prouve un préjudice (C. assur. art. L113-2).',
+      'Reconstruire avant l’expertise fait perdre les preuves.',
+      'Prise de possession ou mise à disposition anticipée : la garantie TRC s’arrête ; la garde doit avoir été transférée au MOA par écrit.',
+      'Groupement : la franchise TRC reste à répartir entre les membres selon la convention de groupement.',
+    )
     r.courriers.push({ type: 'constat', libelle: 'Constat contradictoire' })
     r.surligner.push('trc', 'rc')
     return r
@@ -432,23 +471,25 @@ const REGLES: Record<Probleme, Regle> = {
   vol_chantier: (s) => {
     const r = base('Vol ou vandalisme sur le chantier')
     if (s.moment !== 'avant_reception') r.alertes.push('Après réception, un vol ou une dégradation relève de l’assurance du propriétaire (multirisque).')
-    r.garanties.push(s.trcSouscrite === 'non' ? G.contractuelle(true, 'Sans TRC : l’entreprise, gardienne du chantier, supporte la perte de ses ouvrages et matériels (vérifier son assurance « matériel »).') : G.trc(true, 'Si la garantie vol/vandalisme est incluse dans la TRC (vérifier les conditions : clôture, gardiennage).'))
-    r.garanties.push({ cle: 'engins', libelle: 'Assurance du matériel / engins (bris, vol)', nature: 'facultative', principale: false, commentaire: 'Pour le matériel et les engins volés ou dégradés.' })
+    r.garanties.push(s.trcSouscrite === 'non' ? G.contractuelle(true, 'Sans TRC : l’entreprise, gardienne du chantier jusqu’à la réception, supporte la perte de ses ouvrages et matériaux.') : G.trc(true, 'Ouvrages et matériaux sur chantier : la TRC du groupe couvre le vol et la tentative de vol avec effraction ou détérioration, et le vandalisme (franchise 20 %, mini 45 000 €).'))
+    r.garanties.push(G.bdm(false, 'Engins et matériels volés ou vandalisés (loués ou en propriété) : bris de machine, franchise 10 % (mini 5 000 €, maxi 25 000 €).'))
+    r.garanties.push(G.trs(false, 'Vol dans la base vie ou les bungalows : multirisque TRS, plafond 150 000 €, franchise 12 000 € ; le vol de biens stockés en plein air n’est pas garanti.'))
     r.etapes.push(
-      { texte: 'Déposer plainte au commissariat / à la gendarmerie et conserver le récépissé' },
-      { texte: 'Déclarer le vol à l’assureur', delai: '2 jours ouvrés (sauf délai plus long au contrat)', source: 'C. assur. art. L113-2' },
+      { texte: 'Déposer plainte au commissariat / à la gendarmerie en listant précisément les biens volés ; conserver le récépissé' },
+      { texte: 'Déclarer le vol à l’assureur (TRC, bris de machine ou TRS selon les biens) via le courtier', delai: '2 jours ouvrés (sauf délai plus long au contrat)', source: 'C. assur. art. L113-2' },
+      { texte: 'Matériel loué : prévenir immédiatement le loueur et lui transmettre la plainte' },
       { texte: 'Informer le MOE / MOA ; inscrire l’événement au journal de chantier ; renforcer la sécurisation' },
     )
-    r.documents.push('Récépissé de dépôt de plainte', 'Factures / inventaire des biens volés', ...DOCS_CONSTAT)
-    r.pieges.push('Les polices exigent souvent des mesures de protection (clôture, fermeture, gardiennage) : à défaut, refus de garantie.')
+    r.documents.push('Récépissé de dépôt de plainte listant les biens', 'Factures / inventaire des biens volés, bons de location', ...DOCS_CONSTAT)
+    r.pieges.push('Les polices exigent souvent des mesures de protection (clôture, fermeture, gardiennage) : à défaut, refus de garantie.', 'Un bien non listé dans la plainte ne sera pas indemnisé.')
     r.courriers.push({ type: 'transmission', libelle: 'Transmission de documents' })
-    r.surligner.push('trc', 'engins')
+    r.surligner.push('trc', 'bdm', 'trs')
     return r
   },
 
   dommage_voisin: (s) => {
     const r = base('Dommage à un tiers / riverain / bâtiment voisin')
-    r.garanties.push(G.rc(true, 'RC exploitation de l’entreprise dont l’intervention a causé le dommage.'))
+    r.garanties.push(G.rc(true, 'RC exploitation de l’entreprise dont l’intervention a causé le dommage (programme du groupe : troubles anormaux du voisinage 4 M€ par sinistre, franchise 250 000 € ; recours des voisins et des tiers franchise 450 000 €).'))
     r.garanties.push({ cle: 'voisinage', libelle: 'Responsabilité pour troubles anormaux du voisinage', nature: 'responsabilite', principale: false, commentaire: 'Responsabilité sans faute du maître d’ouvrage et des constructeurs vis-à-vis des voisins (C. civ. art. 1253, loi du 15 avril 2024).' })
     r.pourquoi.push('Les dommages aux tiers pendant les travaux relèvent de la responsabilité civile ; le voisin peut agir contre le MOA (troubles anormaux du voisinage) qui se retourne contre l’entreprise responsable.')
     if (s.role === 'moa') r.quiContreQui.push({ qui: 'Maître d’ouvrage mis en cause', contre: 'Entreprise responsable et son assureur RC (et sa propre RC « maître d’ouvrage »)', comment: 'Appeler en garantie l’entreprise ; déclarer à son propre assureur.' })
@@ -514,35 +555,48 @@ const REGLES: Record<Probleme, Regle> = {
   },
 
   dommage_engin: () => {
-    const r = base('Dommage à un engin ou causé par un engin')
-    r.garanties.push({ cle: 'engins', libelle: 'Assurance des engins (RC circulation obligatoire, bris de machine)', nature: 'obligatoire', principale: true, commentaire: 'RC obligatoire pour les engins automoteurs (C. assur. art. L211-1) ; dommages à l’engin : bris de machine (facultatif).' })
-    r.garanties.push(G.rc(false, 'Engin à l’arrêt ou outil : selon les contrats, la RC exploitation peut intervenir.'))
-    r.pourquoi.push('Un engin automoteur est un véhicule terrestre à moteur : les dommages qu’il cause aux tiers relèvent de son assurance obligatoire ; les dommages qu’il subit, de la garantie bris de machine.')
-    r.quiContreQui.push({ qui: 'Utilisateur / propriétaire', contre: 'Assureur de l’engin (ou du loueur)', comment: 'Vérifier le contrat de location (qui assure, franchise).' })
-    r.etapes.push(
-      { texte: 'Sécuriser, établir un constat (constat amiable si un autre véhicule est impliqué)' },
-      ETAPE_DECLARATION_RC,
-      { texte: 'Engin loué : prévenir immédiatement le loueur' },
+    const r = base('Engin ou matériel endommagé, volé — ou dommage causé par un engin')
+    r.garanties.push(G.bdm(true))
+    r.garanties.push(G.engins(false))
+    r.garanties.push(G.rc(false, 'Engin en « fonction outil » (pelle qui heurte un réseau, grue…) : c’est la RC générale de l’entreprise qui intervient.'))
+    r.pourquoi.push(
+      'Les dommages SUBIS par l’engin ou le matériel (casse, renversement, vol, incendie) relèvent du bris de machine, qu’il soit loué ou en propriété.',
+      'Les dommages CAUSÉS aux tiers relèvent de la police flotte si l’engin circule (véhicule terrestre à moteur, C. assur. art. L211-1), de la RC générale s’il travaille en fonction outil.',
     )
-    r.documents.push('Carte grise / certificat de l’engin, contrat de location', 'CACES / autorisation de conduite du conducteur', ...DOCS_CONSTAT)
-    r.pieges.push('Conducteur sans autorisation de conduite (CACES) : risque de refus ou de recours de l’assureur.', 'Franchise loueur souvent élevée : vérifier le contrat de location.')
-    r.surligner.push('engins')
+    r.quiContreQui.push(
+      { qui: 'Filiale gardienne', contre: 'Assureur bris de machine (via le courtier dédié)', comment: 'Les contrats cadres excluent les garanties des loueurs : produire l’attestation annuelle bris de machine.' },
+      { qui: 'Tiers lésé', contre: 'Entreprise et son assureur (flotte ou RC)', comment: 'Selon que l’engin circulait ou travaillait.' },
+    )
+    r.etapes.push(
+      { texte: 'Sécuriser, établir un constat (constat amiable si un autre véhicule est impliqué), photos' },
+      { texte: 'Déclarer le sinistre bris de machine au courtier gestionnaire (formulaire « Bris de machines » sur Dat@ssur) ; vol : plainte et déclaration sous 2 jours ouvrés', delai: '5 jours ouvrés (2 jours ouvrés en cas de vol)', source: 'C. assur. art. L113-2' },
+      { texte: 'Engin loué : prévenir immédiatement le loueur ; refuser sa garantie « casse » en produisant l’attestation annuelle du groupe' },
+      { texte: 'Dommage à un tiers : déclaration RC ou flotte selon le cas', source: 'Guide des assurances 2026' },
+    )
+    r.documents.push('Bon de location (accessoires listés) ou inventaire, carte grise de l’engin immatriculé', 'CACES / autorisation de conduite du conducteur', ...DOCS_CONSTAT)
+    r.pieges.push(
+      'Non couverts : camions (police flotte), consommables (dents, couteaux, forets), pneumatiques, usure, matériel > 2 M€ HT ou mis à disposition d’un tiers.',
+      'Non-respect des conditions de manutention ou d’utilisation : refus de garantie.',
+      'Conducteur sans autorisation de conduite (CACES) : risque de refus ou de recours de l’assureur.',
+    )
+    r.surligner.push('bdm', 'engins')
     return r
   },
 
   pollution: () => {
-    const r = base('Pollution accidentelle')
-    r.garanties.push({ cle: 'env', libelle: 'RC atteinte à l’environnement', nature: 'facultative', principale: true, commentaire: 'Pollutions et frais de dépollution, selon contrat.' })
-    r.garanties.push(G.rc(false, 'La RC exploitation couvre parfois la pollution « accidentelle » (vérifier les exclusions).'))
-    r.pourquoi.push('Les pollutions sont souvent exclues ou limitées dans la RC générale : une garantie spécifique est nécessaire pour les frais de dépollution.')
+    const r = base('Atteinte à l’environnement')
+    r.garanties.push({ cle: 'env', libelle: 'RC atteinte à l’environnement', nature: 'facultative', principale: true, commentaire: 'Pollution accidentelle : RC de 1re ligne, 1,525 M€ par sinistre et par an (dont préjudice écologique 1,5 M€), complétée par la RC AE de VINCI SA. Pollution graduelle : contrat de VINCI SA.' })
+    r.garanties.push(G.rc(false, 'Dommages aux tiers consécutifs à la pollution accidentelle (même programme RC).'))
+    r.pourquoi.push('Une pollution soudaine (fausse manœuvre, rupture fortuite de canalisation) est couverte par la RC de 1re ligne ; une pollution qui se manifeste progressivement relève du contrat de VINCI SA. Dans les deux cas, la Direction des Assurances gère le dossier.')
     r.etapes.push(
       { texte: 'Stopper la fuite, confiner (kits absorbants, barrages), protéger réseaux et cours d’eau' },
       { texte: 'Alerter le MOE / MOA, et selon la gravité les autorités (mairie, services de l’État, gestionnaire de réseau)', aVerifier: true },
+      { texte: 'Règle groupe : tout sinistre pollution (accidentelle ou graduelle) est signalé à la Direction des Assurances, qui pilote la déclaration', source: 'Guide des assurances 2026' },
       ETAPE_DECLARATION_RC,
       { texte: 'Évacuer les terres et produits souillés en filière agréée ; conserver les bordereaux de suivi de déchets', source: 'CCAG Travaux 2021 art. 36' },
     )
     r.documents.push('Bordereaux de suivi des déchets (BSD)', 'Fiches de données de sécurité des produits', ...DOCS_CONSTAT)
-    r.pieges.push('Les pollutions « graduelles » sont souvent exclues : lire les conditions.')
+    r.pieges.push('La pollution graduelle n’est pas couverte par la RC de 1re ligne : ne pas la déclarer sur ce contrat.', 'Marché exigeant un plafond supérieur : demander une attestation 2e ligne (72 h) avant la signature.')
     r.surligner.push('env', 'rc')
     return r
   },
@@ -593,6 +647,118 @@ const REGLES: Record<Probleme, Regle> = {
     r.surligner.push('do', 'rcd')
     return r
   },
+  dommage_existant: (s) => {
+    const r = base('Dommage à un ouvrage existant')
+    if (s.moment === 'avant_reception') {
+      r.garanties.push(G.rc(true, 'Existants et biens confiés du maître d’ouvrage : RC exploitation de l’entreprise (programme du groupe, dommages aux existants inclus dans le plafond de 10 M€ par sinistre).'))
+      if (s.trcSouscrite !== 'non')
+        r.garanties.push(G.trc(false, 'Seulement si la police de chantier comporte l’option « Existants » (la TRC annuelle du groupe ne couvre pas les existants ; certaines polices excluent l’incendie, la foudre et l’explosion).'))
+      r.pourquoi.push('Pendant les travaux, les biens existants du maître d’ouvrage (situés sur, sous ou à proximité du chantier) ne font pas partie de l’ouvrage assuré en TRC, sauf option : leur endommagement relève de la responsabilité civile de l’entreprise.')
+      r.etapes.push(
+        { texte: 'Mesures conservatoires (bâchage, étaiement, mise hors d’eau) et constat contradictoire avec le MOA' },
+        ETAPE_DECLARATION_RC,
+        { texte: 'Réhabilitation : vérifier que le marché prévoit la garantie des existants contre l’incendie, la foudre et l’explosion par le MOA', source: 'Guide des assurances 2026' },
+      )
+      r.surligner.push('rc', 'trc')
+    } else if (s.moment === 'plus10') {
+      r.garanties.push({ cle: 'aucune', libelle: 'Plus de garantie', nature: 'responsabilite', principale: true, commentaire: 'Délais d’action expirés (10 ans après la réception).' })
+    } else {
+      r.garanties.push(G.rcd(true, 'Après réception : la police RCD du groupe couvre les dommages aux existants divisibles consécutifs à un désordre décennal (1 M€ par sinistre).'))
+      r.garanties.push(G.do(false, 'La DO peut comporter une garantie complémentaire des existants, si elle a été souscrite.'))
+      r.pourquoi.push('Un existant totalement incorporé à l’ouvrage neuf et devenu techniquement indivisible suit le régime de l’ouvrage neuf ; sinon, ses dommages sont couverts par les garanties complémentaires « existants » (C. assur. art. L243-1-1 II).')
+      r.etapes.push({ texte: 'Faire qualifier le désordre par l’expert (existant divisible ou indivisible, lien avec les travaux neufs)' }, ETAPE_ASSIGNATION_10ANS)
+      r.surligner.push('rcd', 'do')
+    }
+    r.documents.push('Diagnostic / état des lieux des existants avant travaux', ...DOCS_CONSTAT)
+    r.pieges.push('Sans état des lieux contradictoire avant travaux, il est difficile de prouver l’état antérieur.', 'Ne pas reconnaître seul sa responsabilité.')
+    r.courriers.push({ type: 'constat', libelle: 'Constat contradictoire' })
+    return r
+  },
+
+  reclamation_tiers: (s) => {
+    const r = base('Réclamation ou mise en cause d’un tiers')
+    if (s.moment === 'avant_reception') r.garanties.push(G.rc(true, 'RC exploitation / avant réception : 10 M€ par sinistre (programme du groupe).'))
+    else r.garanties.push(G.rc(true, 'RC après réception : 10 M€ par sinistre et 50 M€ par an (programme du groupe) ; si le désordre est décennal, c’est la RCD qui intervient.'))
+    if (s.moment !== 'avant_reception' && s.moment !== 'plus10') r.garanties.push(G.rcd(false, 'Si la réclamation porte sur un désordre de nature décennale de l’ouvrage.'))
+    r.pourquoi.push('Toute réclamation d’un tiers (courrier, mise en demeure, convocation à expertise, assignation) doit être transmise à l’assureur : c’est lui qui dirige la défense et, sauf exception, l’entreprise ne doit rien reconnaître ni transiger seule.')
+    r.quiContreQui.push({ qui: 'Tiers', contre: 'Entreprise (et son assureur RC, action directe C. assur. art. L124-3)', comment: 'Le courtier désigne l’expert et, si nécessaire, l’avocat.' })
+    r.etapes.push(
+      { texte: 'Transmettre sans délai la réclamation au courtier gestionnaire avec le formulaire « Responsabilité civile » (Dat@ssur) et les pièces du marché', source: 'C. assur. art. L113-2' },
+      { texte: 'Assignation ou référé : transmettre immédiatement (délais de procédure courts) ; ne pas répondre sur le fond sans l’assureur' },
+      { texte: 'À partir de 25 000 € de préjudice réclamé, l’assureur missionne un expert économiste pour vérifier les montants', source: 'Guide des assurances 2026' },
+      { texte: 'Prescription de l’action du tiers', delai: '5 ans (10 ans en cas de dommage corporel)', source: 'C. civ. art. 2224 et 2226' },
+    )
+    r.documents.push('Courrier de réclamation ou acte de procédure (avec sa date de réception)', 'Comptes rendus de chantier, attestations RC des intervenants concernés', ...DOCS_CONSTAT)
+    r.pieges.push('Pénalités de retard, amendes et retard de livraison non lié à un sinistre ne sont pas garantis par la RC.', 'Reconnaître sa responsabilité sans l’accord de l’assureur peut lui être inopposable.')
+    r.courriers.push({ type: 'transmission', libelle: 'Transmission de documents (déclaration de sinistre)' })
+    r.surligner.push('rc')
+    return r
+  },
+
+  incendie_base_vie: () => {
+    const r = base('Sinistre dans la base vie ou les bureaux de chantier')
+    r.garanties.push(G.trs())
+    r.garanties.push(G.trc(false, 'Seulement si la base vie est intégrée à l’ouvrage et déclarée dans la TRC (mobilier jamais couvert).'))
+    r.garanties.push(G.rc(false, 'Si l’incendie se propage aux voisins ou aux tiers : recours des voisins et des tiers (450 000 € en TRS).'))
+    r.pourquoi.push('Les bases vie, bungalows et conteneurs de chantier sont garantis par la multirisque du groupe sans déclaration préalable (incendie, dégât des eaux, vol, bris de glace, dommages informatiques).')
+    r.etapes.push(
+      { texte: 'Évacuer, alerter les secours (18 / 112), mettre en sécurité ; incendie : ne rien déblayer avant l’expert' },
+      { texte: 'Vol : déposer plainte en listant les biens', delai: '2 jours ouvrés pour déclarer', source: 'C. assur. art. L113-2' },
+      { texte: 'Déclarer le sinistre multirisque (formulaire « Multirisque » sur Dat@ssur) au courtier / à la Direction des Assurances', delai: '5 jours ouvrés', source: 'C. assur. art. L113-2' },
+      { texte: 'Réunir la preuve du respect des préconisations bases vie : contrôle électrique annuel par un organisme agréé, détection incendie, extincteurs, référent sécurité, permis de feu', source: 'Guide des assurances 2026' },
+      { texte: 'Après le premier versement (acompte), envoyer les factures de remplacement pour l’indemnité différée', delai: '2 ans à compter du sinistre', source: 'Guide des assurances 2026' },
+    )
+    r.documents.push('Rapport de vérification électrique et registre de sécurité', 'Inventaire et factures du contenu', 'Récépissé de plainte (vol)', ...DOCS_CONSTAT)
+    r.pieges.push(
+      'Franchise : 12 000 € par sinistre, portée à 60 000 € en cas d’incendie si une préconisation impérative n’est pas respectée.',
+      'Le vol de biens stockés en plein air n’est pas garanti ; vol en base vie plafonné à 150 000 €.',
+      'Le bris de machine (engins, outillage) relève de la police bris de machine, pas de la TRS.',
+    )
+    r.courriers.push({ type: 'transmission', libelle: 'Transmission de documents' })
+    r.surligner.push('trs')
+    return r
+  },
+
+  sinistre_auto: () => {
+    const r = base('Accident ou vol de véhicule')
+    r.garanties.push({ cle: 'auto', libelle: 'Assurance automobile (police flotte ou police mission)', nature: 'obligatoire', principale: true, commentaire: 'Véhicule de fonction ou de société : police flotte (formules A, B ou C). Véhicule personnel en déplacement professionnel : police mission (tous risques, franchise 135 €).' })
+    r.pourquoi.push('La RC automobile est attachée au véhicule (C. assur. art. L211-1). Les dommages au véhicule sans tiers identifié ne sont pris en charge qu’en formule tous risques, en cas d’incendie ou de catastrophe naturelle.')
+    r.quiContreQui.push({ qui: 'Conducteur / filiale', contre: 'Courtier flotte (Howden) ; Direction des Assurances pour la police mission', comment: 'Les assureurs règlent entre eux selon les conventions IRSA (matériel) et IRCA (corporel).' })
+    r.etapes.push(
+      { texte: 'Sécuriser les lieux (feux de détresse, triangle) ; blessé, même léger : prévenir police ou gendarmerie' },
+      { texte: 'Remplir un seul constat amiable avec l’autre conducteur : recto signé par les deux, cases cochées et leur nombre, point de choc initial, croquis ; en cas de désaccord, ne rien cocher et l’indiquer en « Observations »' },
+      { texte: 'Transmettre le constat, la fiche de liaison, la carte grise et les coordonnées du garage au courtier flotte (ou à la Direction des Assurances pour la police mission, avec l’attestation de mission)', delai: '5 jours ouvrés (2 jours ouvrés en cas de vol)', source: 'Guide des assurances 2026 ; C. assur. art. L113-2' },
+      { texte: 'Accident corporel : informer le gestionnaire de flotte par mail (déroulé, forces de l’ordre intervenues, n° de procédure, blessés)', delai: '24 heures' },
+      { texte: 'Vol : prévenir le responsable de parc, déposer plainte, restituer clés et carte grise ; véhicule non retrouvé sous 30 jours : cession à l’assureur (formules B et C)', delai: '30 jours' },
+      { texte: 'Ne pas faire réparer sans expertise ; dommage < 850 € HT : accord préalable du courtier' },
+    )
+    r.documents.push('Constat amiable (recto signé) ou déclaration circonstanciée', 'Carte grise, fiche de liaison', 'Récépissé de plainte (vol, matériel volé listé)', 'Photos des dommages')
+    r.pieges.push(
+      'Ne jamais écrire « je reconnais mes torts » ; ne rien ajouter au recto après séparation des exemplaires.',
+      'Matériel professionnel volé dans le véhicule : couvert seulement en formule B ou C, s’il figure dans la plainte, avec factures et preuve d’effraction.',
+      'Covoiturage via une plateforme : non autorisé.',
+    )
+    r.surligner.push('auto')
+    return r
+  },
+
+  avarie_transport: () => {
+    const r = base('Avarie ou perte pendant le transport')
+    r.garanties.push({ cle: 'transport', libelle: 'Assurance transport', nature: 'facultative', principale: true, commentaire: 'Matériels et marchandises destinés aux chantiers, déclarés avant l’expédition ; sans franchise (sauf tubes et tuyaux : 10 %, mini 20 000 €, maxi 45 000 €) ; 10 M€ par transport.' })
+    r.garanties.push(G.bdm(false, 'Engin ou matériel de l’entreprise endommagé lors de son transport par voie terrestre : bris de machine.'))
+    r.pourquoi.push('L’assureur indemnise puis se retourne contre le transporteur : il faut donc préserver ce recours par des réserves régulières.')
+    r.quiContreQui.push({ qui: 'Destinataire (chantier)', contre: 'Transporteur', comment: 'Réserves écrites et motivées à la livraison, confirmées par LRAR.' })
+    r.etapes.push(
+      { texte: 'À la livraison : réserves précises et datées sur le bon de livraison (nature et étendue des dommages, colis manquants), photos' },
+      { texte: 'Confirmer les réserves au transporteur par lettre recommandée', delai: '3 jours, non compris les jours fériés', source: 'C. com. art. L133-3' },
+      { texte: 'Déclarer à l’assureur transport via la Direction des Assurances ; conserver la marchandise endommagée pour l’expertise' },
+    )
+    r.documents.push('Bon de livraison avec réserves, lettre de voiture / CMR', 'Facture des biens, ordre d’assurance (aliment) de l’expédition', 'Photos des dommages')
+    r.pieges.push('Une réception sans réserve ni protestation dans les 3 jours éteint l’action contre le transporteur.', 'Expédition non déclarée à l’assureur avant le départ : pas de garantie.')
+    r.courriers.push({ type: 'reserves', libelle: 'Émission de réserves' })
+    r.surligner.push('transport', 'bdm')
+    return r
+  },
 }
 
 /* ─────────────────────────── Point d'entrée ─────────────────────────── */
@@ -601,6 +767,12 @@ function dedoublonner<T>(arr: T[], cle: (x: T) => string): T[] {
   const vus = new Set<string>()
   return arr.filter((x) => (vus.has(cle(x)) ? false : (vus.add(cle(x)), true)))
 }
+
+/** Problématiques pour lesquelles la règle « groupe » de déclaration est rappelée à l'entreprise. */
+const PROBLEMES_REGLE_GROUPE: Probleme[] = [
+  'fissure_structurelle', 'infiltration', 'equipement_indissociable', 'defaut_conception', 'dommage_ouvrage_travaux', 'dommage_voisin',
+  'blessure_tiers', 'dommage_sous_traitant', 'pollution', 'dommage_existant', 'reclamation_tiers', 'incendie_base_vie',
+]
 
 /** Calcule la recommandation (garanties triées : principales d'abord). */
 export function recommander(s: Situation): Recommandation {
@@ -614,6 +786,7 @@ export function recommander(s: Situation): Recommandation {
     )
   if (s.role === 'entreprise' || s.role === 'sous_traitant')
     r.etapes.push({ texte: 'Côté entreprise : transmettre sans délai toute réclamation à votre assureur et ne pas reconnaître seul votre responsabilité', source: 'C. assur. art. L113-2' })
+  if (s.role === 'entreprise' && PROBLEMES_REGLE_GROUPE.includes(s.probleme)) r.etapes.push(ETAPE_REGLE_GROUPE)
   r.garanties = dedoublonner(
     [...r.garanties.filter((g) => g.principale), ...r.garanties.filter((g) => !g.principale)],
     (g) => g.cle,
