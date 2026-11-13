@@ -1,3 +1,4 @@
+import { seedFicheEcart } from './fiche-ecart'
 import type { PrismaClient } from '@prisma/client'
 import { deflateSync } from 'node:zlib'
 
@@ -334,43 +335,15 @@ export async function completerPeriodesExemple(prisma: PrismaClient, projetId: s
   return manquantes.length
 }
 
-/** Données de démo du Journal (projet neuf) + fiche écart (1 chapitre + lignes, dont une importée d'un événement). */
+/** Données de démo du Journal (projet neuf) + fiche écart (6 chapitres, 18 lignes dont 10 rattachées à des événements). */
 export async function seedJournal(prisma: PrismaClient, projetId: string) {
   const evenements = evenementsExemple()
   await prisma.ligneFicheEcart.deleteMany({ where: { projetId } })
   await prisma.evenementChantier.deleteMany({ where: { projetId, titre: { in: evenements.map((e) => e.titre) } } })
 
-  const ids = await creerEvenements(prisma, projetId, evenements)
+  await creerEvenements(prisma, projetId, evenements)
   await seedPeriodesExemple(prisma, projetId)
 
-  // Fiche écart : 1 chapitre + lignes (dont une importée depuis un événement)
-  const evReseaux = evenements[4]
-  await prisma.ligneFicheEcart.createMany({
-    data: [
-      { projetId, ordre: 0, estChapitre: true, etude: 'Terrassements et réseaux', chapitre: 'Terrassements et réseaux' },
-      {
-        projetId,
-        ordre: 1,
-        evenementId: ids[evReseaux.titre],
-        etude: `${evReseaux.titre} (${evReseaux.date.split('-').reverse().join('/')})`,
-        prevuDCE: 'Aucun réseau enterré recensé en limite nord du terrain.',
-        phaseTransitoire: 'Protection provisoire des réseaux et balisage de la zone.',
-        exe: 'Dévoiement définitif des réseaux sous fourreaux.',
-        impacts: 'Arrêt partiel de la zone, reprise du phasage des terrassements.',
-        delaisImpactes: '+ 8 jours',
-        coutImpactes: '18 500 € HT (estimation)',
-      },
-      {
-        projetId,
-        ordre: 2,
-        etude: 'Profondeur des fondations zone B',
-        prevuDCE: 'Semelles filantes ancrées à 1,20 m',
-        phaseTransitoire: 'Terrassement provisoire à 1,50 m',
-        exe: 'Ancrage à 2,00 m demandé par la MOE (VISA indice B)',
-        impacts: 'Surconsommation de béton, purge de sol supplémentaire.',
-        delaisImpactes: '+ 3 jours',
-        coutImpactes: '42 000 € HT',
-      },
-    ],
-  })
+  // Fiche écart : chapitres + lignes, dont plusieurs rattachées aux événements
+  await seedFicheEcart(prisma, projetId)
 }
