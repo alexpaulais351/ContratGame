@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookA, Calculator, Clock, FileText, GitBranch, ShieldCheck, type LucideIcon } from 'lucide-react'
+import { BookA, Calculator, Clock, FileText, GitBranch, type LucideIcon } from 'lucide-react'
 import { BASE_BOITE, OUTILS_BOITE } from '@/lib/boite-a-outils/outils'
 import { VERSION_CCAG_2021 } from '@/lib/boite-a-outils/sources'
 
@@ -8,7 +8,6 @@ const ICONES: Record<string, LucideIcon> = {
   'procedure-dgd': GitBranch,
   'delais-cles': Clock,
   calculateurs: Calculator,
-  assurances: ShieldCheck,
   lexique: BookA,
 }
 

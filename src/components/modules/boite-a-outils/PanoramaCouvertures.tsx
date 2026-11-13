@@ -17,8 +17,11 @@ const JALONS = ['Signature', 'Ouverture du chantier', 'Réception', '+1 an', '+2
 
 type Actif = { a: Assurance; partiel: boolean }
 
+/** Le panorama ne montre que les couvertures de l'opération de construction ayant au moins un segment de frise. */
+const ASSURANCES_PANORAMA = ASSURANCES.filter((x) => x.categorie === 'ouvrage' && !x.horsPanorama && x.segments.length > 0)
+
 function assurancesDeLaPhase(de: number, a: number): Actif[] {
-  return ASSURANCES.flatMap((x) => {
+  return ASSURANCES_PANORAMA.flatMap((x) => {
     const segs = x.segments.filter((s) => s.de < a && s.a > de)
     if (segs.length === 0) return []
     return [{ a: x, partiel: segs.every((s) => s.partiel) }]
@@ -129,7 +132,8 @@ export function PanoramaCouvertures() {
           </div>
           <p className="mt-3 text-xs text-vinci-texte-secondaire">
             Plein = assurance obligatoire · pointillé = facultative · hachuré = garantie légale · atténué = selon contrat. Survolez une garantie pour la suivre
-            d’une phase à l’autre, cliquez pour ouvrir sa fiche.
+            d’une phase à l’autre, cliquez pour ouvrir sa fiche. Les assurances de l’entreprise (engins, bris de machine, base vie, véhicules,
+            transport…) sont détaillées plus bas, dans leurs fiches.
           </p>
         </div>
       </div>

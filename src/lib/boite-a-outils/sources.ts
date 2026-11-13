@@ -53,7 +53,7 @@ export const SRC = {
     url: 'https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT000006070721',
   },
   codeAssurances: {
-    texte: 'Code des assurances — art. L241-1 à L243-9 (assurance construction obligatoire), L211-1',
+    texte: 'Code des assurances — art. L241-1 à L243-9 (assurance construction obligatoire, dont L243-1-1 : ouvrages non soumis), annexe II à l’art. A243-1 (clauses types DO), L211-1',
     version: 'Version en vigueur',
     url: 'https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT000006073984',
   },
@@ -68,10 +68,14 @@ export const SRC = {
     url: 'https://www.ffbatiment.fr/gestion-entreprise/comptabilite-banque-assurances/mes-assurances-professionnelles/dossier-ba/ayez-le-reflexe-assurance-avant-de-remettre-votre-prix',
   },
   autresCodes: {
-    texte: 'Aide à la décision : C. civ. art. 1253 (troubles anormaux du voisinage, loi n° 2024-346 du 15/04/2024), 2224, 2226, 2241 ; C. assur. art. L113-2, L114-1, L124-3 ; CSS art. R441-3 ; C. com. art. R622-24',
+    texte: 'Aide à la décision : C. civ. art. 1253 (troubles anormaux du voisinage, loi n° 2024-346 du 15/04/2024), 2224, 2226, 2241 ; C. assur. art. L113-2, L114-1, L124-3 ; CSS art. R441-3 ; C. com. art. L133-3 (réserves au transporteur) et R622-24',
     version: 'Versions en vigueur — certains délais signalés « à vérifier » dans la fiche',
     url: 'https://www.legifrance.gouv.fr',
     aVerifier: true,
+  },
+  guideAssurances2026: {
+    texte: 'Guide des assurances 2026 — Divisions Bâtiment France / Génie Civil France (14e édition), Direction des Assurances',
+    version: 'En vigueur au 01/01/2026 — document à usage strictement interne (plafonds, franchises, règles groupe et procédures repris ; tarifs non repris)',
   },
   sousTraitance: {
     texte: 'Loi n° 75-1334 du 31 décembre 1975 relative à la sous-traitance',
@@ -85,6 +89,6 @@ export const SOURCES_PAR_OUTIL: Record<string, Source[]> = {
   'procedure-dgd': [SRC.ccag2021, SRC.ccag2009, SRC.cccg, SRC.ccag2021Daj],
   'delais-cles': [SRC.ccag2021, SRC.ccp, SRC.bce, SRC.codeCivil],
   calculateurs: [SRC.ccag2021, SRC.ccp, SRC.bce],
-  assurances: [SRC.codeAssurances, SRC.codeCivil, SRC.spinetta, SRC.ccag2021, SRC.ffbCcrd, SRC.sousTraitance, SRC.autresCodes],
+  assurances: [SRC.guideAssurances2026, SRC.codeAssurances, SRC.codeCivil, SRC.spinetta, SRC.ccag2021, SRC.ffbCcrd, SRC.sousTraitance, SRC.autresCodes],
   lexique: [SRC.ccag2021, SRC.ccp],
 }

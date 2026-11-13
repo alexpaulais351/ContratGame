@@ -82,3 +82,58 @@ test('toutes les combinaisons produisent une recommandation complète', () => {
         assert.equal(new Set(r.garanties.map((g) => g.cle)).size, r.garanties.length)
       }
 })
+
+test('DO : procédure d’instruction complète (10 j, 15 j, 60 j, 90 j)', () => {
+  const r = recommander(sit({ probleme: 'infiltration', moment: 'an2_10', doSouscrite: 'oui' }))
+  for (const d of ['10 jours', '15 jours', '60 jours', '90 jours']) assert.ok(r.etapes.some((e) => e.delai?.startsWith(d)), d)
+})
+
+test('ouvrage non soumis : RCD génie civil proposée', () => {
+  const r = recommander(sit({ probleme: 'fissure_structurelle', moment: 'an2_10', ouvrage: 'exclu' }))
+  assert.ok(r.garanties.some((g) => g.cle === 'rcdgc'))
+  assert.ok(r.surligner.includes('rcdgc'))
+})
+
+test('engin cassé → bris de machine en priorité', () => {
+  const r = recommander(sit({ probleme: 'dommage_engin', moment: 'avant_reception' }))
+  assert.equal(r.garanties[0].cle, 'bdm')
+  assert.ok(r.surligner.includes('bdm'))
+})
+
+test('vol sur chantier → TRC, bris de machine et TRS', () => {
+  const g = toutes(sit({ probleme: 'vol_chantier', moment: 'avant_reception', trcSouscrite: 'oui' }))
+  assert.equal(g[0], 'trc')
+  assert.ok(g.includes('bdm') && g.includes('trs'))
+})
+
+test('incendie base vie → multirisque TRS, franchise aggravée signalée', () => {
+  const r = recommander(sit({ probleme: 'incendie_base_vie', moment: 'avant_reception' }))
+  assert.equal(r.garanties[0].cle, 'trs')
+  assert.ok(r.pieges.some((p) => p.includes('60 000 €')))
+})
+
+test('sinistre auto → constat sous 5 jours ouvrés', () => {
+  const r = recommander(sit({ probleme: 'sinistre_auto', moment: 'avant_reception' }))
+  assert.equal(r.garanties[0].cle, 'auto')
+  assert.ok(r.etapes.some((e) => e.delai?.includes('5 jours ouvrés')))
+})
+
+test('avarie de transport → réserves sous 3 jours (C. com. L133-3)', () => {
+  const r = recommander(sit({ probleme: 'avarie_transport', moment: 'avant_reception' }))
+  assert.equal(r.garanties[0].cle, 'transport')
+  assert.ok(r.etapes.some((e) => e.source?.includes('L133-3')))
+})
+
+test('règle groupe rappelée à l’entreprise, pas au maître d’ouvrage', () => {
+  const ent = recommander(sit({ probleme: 'reclamation_tiers', moment: 'avant_reception', role: 'entreprise' }))
+  const moa = recommander(sit({ probleme: 'reclamation_tiers', moment: 'avant_reception', role: 'moa' }))
+  assert.ok(ent.etapes.some((e) => e.texte.startsWith('Règle groupe')))
+  assert.ok(!moa.etapes.some((e) => e.texte.startsWith('Règle groupe')))
+})
+
+test('les garanties surlignées existent dans les fiches', async () => {
+  const { ASSURANCES } = await import('@/lib/boite-a-outils/assurances')
+  const cles = new Set(ASSURANCES.map((a) => a.cle))
+  for (const p of PROBLEMES)
+    for (const m of MOMENTS) for (const c of recommander(sit({ probleme: p.cle, moment: m.cle })).surligner) assert.ok(cles.has(c), `${p.cle}/${c}`)
+})

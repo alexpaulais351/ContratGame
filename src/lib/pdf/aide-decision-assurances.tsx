@@ -10,6 +10,7 @@ import { LIBELLE_NATURE } from '@/lib/boite-a-outils/assurances'
 import { DATE_MAJ } from '@/lib/boite-a-outils/sources'
 import { isoVersDateLocale } from '@/lib/boite-a-outils/dates'
 import type { ProfilSociete } from '@/stores/profil'
+import { pdfSur } from './assurances'
 
 const lib = <T extends { cle: string; libelle: string }>(liste: T[], cle: string) => liste.find((x) => x.cle === cle)?.libelle ?? cle
 const SOUS = { oui: 'Oui', non: 'Non', inconnu: 'Non précisé' } as const
@@ -17,11 +18,12 @@ const SOUS = { oui: 'Oui', non: 'Non', inconnu: 'Non précisé' } as const
 const titreSection = { fontSize: 10, fontFamily: 'Helvetica-Bold', color: VINCI.bleu, marginTop: 10, marginBottom: 4 } as const
 const texte = { fontSize: 8.5, marginBottom: 2, lineHeight: 1.35 } as const
 
-export function FicheAideDecisionPDF({ situation: s, reco: r, profil }: { situation: Situation; reco: Recommandation; profil: ProfilSociete | null }) {
+export function FicheAideDecisionPDF({ situation: s, reco, profil }: { situation: Situation; reco: Recommandation; profil: ProfilSociete | null }) {
+  const r = pdfSur(reco)
   return (
     <Document title={`Fiche assurance — ${r.titre}`}>
       <Page size="A4" style={pdfStyles.page}>
-        <EntetePDF profil={profil} nomProjet="Boîte à outils — Assurances" titreDocument="Fiche d’aide à la décision" />
+        <EntetePDF profil={profil} nomProjet="Assurances" titreDocument="Fiche d’aide à la décision" />
         <Text style={pdfStyles.titre}>{r.titre}</Text>
         <View style={{ borderWidth: 0.5, borderColor: PDF_COULEURS.bordure, backgroundColor: PDF_COULEURS.ligneAlt, padding: 6, marginBottom: 8 }}>
           <Text style={texte}>Problématique : {lib(PROBLEMES, s.probleme)}</Text>
@@ -85,14 +87,14 @@ export function FicheAideDecisionPDF({ situation: s, reco: r, profil }: { situat
 
         {r.courriers.length > 0 && (
           <Text style={[texte, { marginTop: 8 }]}>
-            Modèles de courriers utiles (Boîte à outils) : {r.courriers.map((c) => c.libelle).join(' ; ')}
+            Modèles de courriers utiles : {r.courriers.map((c) => c.libelle).join(' ; ')}
           </Text>
         )}
 
         <View style={{ marginTop: 10, borderTopWidth: 0.5, borderTopColor: VINCI_SECONDAIRE.jaune.base, paddingTop: 4 }}>
           <Text style={{ fontSize: 7.5, color: PDF_COULEURS.texteSecondaire }}>{AVERTISSEMENT_AIDE}</Text>
           <Text style={{ fontSize: 7, color: PDF_COULEURS.texteSecondaire, marginTop: 2 }}>
-            Textes en vigueur : Code civil, Code des assurances, CCAG Travaux 2021 (version consolidée), CCP. Contenu à jour au {formatDateFR(isoVersDateLocale(DATE_MAJ))}.
+            Textes en vigueur : Code civil, Code des assurances, Code de commerce, CCAG Travaux 2021 (version consolidée), CCP ; règles internes : Guide des assurances 2026 (14e éd., usage interne). Contenu à jour au {formatDateFR(isoVersDateLocale(DATE_MAJ))}.
           </Text>
         </View>
         <PiedPagePDF gauche="Fiche d’aide à la décision — assurances" />

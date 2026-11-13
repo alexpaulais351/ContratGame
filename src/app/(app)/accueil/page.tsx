@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { BarChart3, FolderOpen, PlusCircle, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
+import { BarChart3, FolderOpen, PlusCircle, ShieldCheck, UsersRound, Wrench, type LucideIcon } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { formatDateFR } from '@/lib/utils'
@@ -30,7 +30,8 @@ export default async function AccueilPage() {
   const actions: Action[] = [
     { href: '/projets?nouveau=1', titre: 'Nouveau projet', texte: 'Créer un projet et choisir ses modules.', icon: PlusCircle },
     { href: '/projets', titre: 'Mes projets', texte: 'Retrouver et reprendre vos projets en cours.', icon: FolderOpen },
-    { href: '/boite-a-outils', titre: 'Boîte à outils', texte: 'Modèles de courriers, procédure DGD, délais clés, calculateurs, assurances…', icon: Wrench },
+    { href: '/boite-a-outils', titre: 'Boîte à outils', texte: 'Modèles de courriers, procédure DGD, délais clés, calculateurs, lexique…', icon: Wrench },
+    { href: '/assurances', titre: 'Assurances', texte: 'Frise des couvertures, aide à la décision, fiches et conduite à tenir en cas de sinistre.', icon: ShieldCheck },
     ...(user.role === 'admin'
       ? [
           {

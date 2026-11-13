@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, FolderOpen, Home, LogOut, PlusCircle, UsersRound, Wrench, X, type LucideIcon } from 'lucide-react'
+import { BarChart3, FolderOpen, Home, LogOut, PlusCircle, ShieldCheck, UsersRound, Wrench, X, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { deconnexion } from '@/actions/auth'
 import { Logo } from '@/components/layout/Logo'
@@ -16,6 +16,7 @@ const LIENS: Lien[] = [
   { href: '/projets?nouveau=1', label: 'Nouveau projet', icon: PlusCircle },
   { href: '/projets', label: 'Projets', icon: FolderOpen },
   { href: '/boite-a-outils', label: 'Boîte à outils', icon: Wrench },
+  { href: '/assurances', label: 'Assurances', icon: ShieldCheck },
 ]
 
 type Props = { open: boolean; onClose: () => void; utilisateur: UtilisateurShell }
