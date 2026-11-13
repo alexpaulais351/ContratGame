@@ -1,7 +1,7 @@
 import { BookOpen, Download, ExternalLink } from 'lucide-react'
 
 // Paramètre de version : force le rechargement de la présentation après chaque mise à jour (cache navigateur).
-export const PDF_PRESENTATION = '/presentation-contrat-game.pdf?v=2026-11-12c'
+export const PDF_PRESENTATION = '/presentation-contrat-game.pdf?v=2026-11-13a'
 
 /** Présentation du site : PDF intégré + ouverture plein écran + téléchargement. */
 export function PresentationSite() {
