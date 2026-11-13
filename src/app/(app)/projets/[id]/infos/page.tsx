@@ -14,6 +14,12 @@ export default async function InfosPage({ params }: { params: { id: string } }) 
     orderBy: { user: { name: 'asc' } },
   })
   const estOwner = member.role === 'owner'
+  // Inscrits validés du site, non encore membres : suggestions pour l'ajout d'un membre
+  const inscrits = await prisma.user.findMany({
+    where: { statut: 'approuve', memberships: { none: { projetId: projet.id } } },
+    select: { name: true, email: true, nomSociete: true },
+    orderBy: { name: 'asc' },
+  })
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="page-titre">Informations du projet</h1>
@@ -41,6 +47,7 @@ export default async function InfosPage({ params }: { params: { id: string } }) 
         projetId={projet.id}
         estOwner={estOwner}
         moiId={user.id ?? ''}
+        inscrits={inscrits.map((u) => ({ nom: u.name, email: u.email, societe: u.nomSociete ?? '' }))}
         membres={membres.map((m) => ({ id: m.id, userId: m.userId, nom: m.user.name, email: m.user.email, role: m.role }))}
       />
       {estOwner && <ZoneDanger projetId={projet.id} nomProjet={projet.name} />}
