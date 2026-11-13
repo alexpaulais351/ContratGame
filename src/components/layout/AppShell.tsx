@@ -1,5 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { compteursBarreLaterale } from '@/actions/compteurs'
 import Link from 'next/link'
 import { Menu, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,8 +10,27 @@ import { Sidebar, type UtilisateurShell } from './Sidebar'
 import { SuiviVisites } from './SuiviVisites'
 
 /** Coquille connectée : sidebar + bandeau illustré en haut (Profil) + contenu défilant. */
-export function AppShell({ children, utilisateur }: { children: React.ReactNode; utilisateur: UtilisateurShell }) {
+export function AppShell({ children, utilisateur: initial }: { children: React.ReactNode; utilisateur: UtilisateurShell }) {
   const [menuOuvert, setMenuOuvert] = useState(false)
+  const pathname = usePathname()
+  // Pastilles administrateur : le layout n'est pas re-rendu lors des navigations,
+  // on recharge donc les compteurs à chaque changement de page et toutes les 60 s.
+  const [compteurs, setCompteurs] = useState({ demandesEnAttente: initial.demandesEnAttente, ticketsNouveaux: initial.ticketsNouveaux ?? 0 })
+  useEffect(() => {
+    if (!initial.estAdmin) return
+    let actif = true
+    const charger = () =>
+      compteursBarreLaterale()
+        .then((c) => actif && setCompteurs(c))
+        .catch(() => undefined)
+    charger()
+    const t = setInterval(charger, 60_000)
+    return () => {
+      actif = false
+      clearInterval(t)
+    }
+  }, [pathname, initial.estAdmin])
+  const utilisateur = { ...initial, ...compteurs }
   return (
     <div className="flex h-screen overflow-hidden">
       <SuiviVisites />
