@@ -23,6 +23,7 @@ model User {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   memberships    ProjetMember[]
+  tickets        Ticket[]
   visites        Visite[]
   connexions     Connexion[]
 }
@@ -124,16 +125,16 @@ model CoTraitant {
 }
 
 model Situation {
-  id          String           @id @default(cuid())
+  id          String             @id @default(cuid())
   projetId    String
   numero      Int
-  libelle     String           @default("")
+  libelle     String             @default("")
   annee       Int
   mois        Int
-  statut      String           @default("brouillon") // "brouillon" | "validee"
+  statut      String             @default("brouillon") // "brouillon" | "validee"
   commentaire String?
-  createdAt   DateTime         @default(now())
-  projet      Projet           @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime           @default(now())
+  projet      Projet             @relation(fields: [projetId], references: [id], onDelete: Cascade)
   lignes      LigneSituation[]
   lignesPN    LigneSituationPN[]
 
@@ -168,22 +169,22 @@ model LigneSituationPN {
 }
 
 model PrixNouveau {
-  id                   String    @id @default(cuid())
+  id                   String             @id @default(cuid())
   projetId             String
-  numero               String    @default("")
-  intitule             String    @default("")
+  numero               String             @default("")
+  intitule             String             @default("")
   dateDevis            DateTime?
-  montantPresente      Float     @default(0)
+  montantPresente      Float              @default(0)
   montantAccepte       Float?
   debourseReel         Float?
   numeroOS             String?
   dateOS               DateTime?
   delaiSupplementaire  String?
-  potentielAcceptation Int       @default(50)
-  statut               String    @default("a_venir") // a_venir | en_cours | accepte | refuse
+  potentielAcceptation Int                @default(50)
+  statut               String             @default("a_venir") // a_venir | en_cours | accepte | refuse
   commentaire          String?
-  ordre                Int       @default(0)
-  projet               Projet    @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  ordre                Int                @default(0)
+  projet               Projet             @relation(fields: [projetId], references: [id], onDelete: Cascade)
   lignesSituation      LigneSituationPN[]
 }
 
@@ -413,4 +414,26 @@ model ContactDiffusion {
   projet                Projet   @relation(fields: [projetId], references: [id], onDelete: Cascade)
 
   @@index([projetId, ordre])
+}
+
+/// Demande remontée par un utilisateur à l'administrateur (amélioration, export, affichage, anomalie…)
+model Ticket {
+  id          String   @id @default(cuid())
+  numero      Int      @default(autoincrement())
+  auteurId    String
+  titre       String
+  description String   @db.Text
+  /// 'amelioration' | 'anomalie' | 'export' | 'affichage' | 'donnees' | 'autre'
+  categorie   String   @default("amelioration")
+  /// 'basse' | 'normale' | 'haute'
+  priorite    String   @default("normale")
+  /// 'nouveau' | 'en_cours' | 'resolu' | 'refuse'
+  statut      String   @default("nouveau")
+  page        String?
+  reponse     String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  auteur      User     @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+
+  @@index([statut, createdAt])
 }

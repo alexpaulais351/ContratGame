@@ -13,6 +13,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (user.statut !== 'approuve') redirect('/compte-en-attente')
   const estAdmin = user.role === 'admin'
   const demandesEnAttente = estAdmin ? await prisma.user.count({ where: { statut: 'en_attente' } }) : 0
+  // Administrateur : nouveaux tickets à traiter (pastille de l'onglet Tickets)
+  const ticketsNouveaux = estAdmin ? await prisma.ticket.count({ where: { statut: 'nouveau' } }) : 0
   return (
     <>
       <ProfilHydrator
@@ -27,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           certifications: user.certifications,
         }}
       />
-      <AppShell utilisateur={{ nom: user.name, email: user.email, estAdmin, demandesEnAttente }}>{children}</AppShell>
+      <AppShell utilisateur={{ nom: user.name, email: user.email, estAdmin, demandesEnAttente, ticketsNouveaux }}>{children}</AppShell>
     </>
   )
 }

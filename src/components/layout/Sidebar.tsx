@@ -1,15 +1,15 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, FolderOpen, Home, LogOut, PlusCircle, ShieldCheck, UsersRound, Wrench, X, type LucideIcon } from 'lucide-react'
+import { BarChart3, FolderOpen, LifeBuoy, Home, LogOut, PlusCircle, ShieldCheck, UsersRound, Wrench, X, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { deconnexion } from '@/actions/auth'
 import { Logo } from '@/components/layout/Logo'
 import { ByEbgc } from '@/components/layout/ByEbgc'
 
-export type UtilisateurShell = { nom: string; email: string; estAdmin: boolean; demandesEnAttente: number }
+export type UtilisateurShell = { nom: string; email: string; estAdmin: boolean; demandesEnAttente: number; ticketsNouveaux?: number }
 
-type Lien = { href: string; label: string; icon: LucideIcon; badge?: number; sous?: Lien[] }
+type Lien = { href: string; label: string; icon: LucideIcon; badge?: number; badgeTexte?: string; sous?: Lien[] }
 
 const LIENS: Lien[] = [
   { href: '/accueil', label: 'Accueil', icon: Home },
@@ -25,10 +25,11 @@ export function Sidebar({ open, onClose, utilisateur }: Props) {
   const liens: Lien[] = utilisateur.estAdmin
     ? [
         ...LIENS,
-        { href: '/comptes', label: 'Comptes', icon: UsersRound, badge: utilisateur.demandesEnAttente },
+        { href: '/tickets', label: 'Tickets', icon: LifeBuoy, badge: utilisateur.ticketsNouveaux, badgeTexte: 'nouveau' },
+        { href: '/comptes', label: 'Comptes', icon: UsersRound, badge: utilisateur.demandesEnAttente, badgeTexte: 'à valider' },
         { href: '/analyse', label: 'Analyse', icon: BarChart3 },
       ]
-    : LIENS
+    : [...LIENS, { href: '/tickets', label: 'Mes demandes', icon: LifeBuoy }]
 
   return (
     <>
@@ -59,7 +60,7 @@ export function Sidebar({ open, onClose, utilisateur }: Props) {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3" aria-label="Navigation principale">
-          {liens.map(({ href, label, icon: Icon, badge, sous }) => {
+          {liens.map(({ href, label, icon: Icon, badge, badgeTexte, sous }) => {
             const chemin = href.split('?')[0]
             const actif = href.includes('?') ? false : pathname === chemin || pathname.startsWith(chemin + '/')
             return (
@@ -86,10 +87,10 @@ export function Sidebar({ open, onClose, utilisateur }: Props) {
                   {badge ? (
                     <span
                       className="ml-auto flex items-center gap-1 rounded-full bg-vinci-rouge px-2 py-0.5 text-[11px] font-bold text-white shadow"
-                      title={`${badge} compte${badge > 1 ? 's' : ''} à valider`}
-                      aria-label={`${badge} compte${badge > 1 ? 's' : ''} à valider`}
+                      title={`${badge} ${badgeTexte ?? ''}`}
+                      aria-label={`${label} : ${badge} ${badgeTexte ?? ''}`}
                     >
-                      {badge} à valider
+                      {badge} {badgeTexte === 'nouveau' && badge > 1 ? 'nouveaux' : badgeTexte}
                     </span>
                   ) : null}
                 </Link>
