@@ -73,14 +73,23 @@ export function Sidebar({ open, onClose, utilisateur }: Props) {
                     actif ? 'border-vinci-rouge bg-vinci-bleu-fonce font-semibold text-white' : 'border-transparent text-white/70 hover:text-white',
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="relative shrink-0">
+                    <Icon className="h-4 w-4" aria-hidden />
+                    {badge ? (
+                      <span className="absolute -right-1.5 -top-1.5 flex h-2.5 w-2.5" aria-hidden>
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-vinci-rouge opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-vinci-rouge ring-2 ring-vinci-bleu" />
+                      </span>
+                    ) : null}
+                  </span>
                   {label}
                   {badge ? (
                     <span
-                      className="ml-auto rounded-full bg-vinci-rouge px-2 py-0.5 text-xs font-bold text-white"
-                      aria-label={`${badge} demande${badge > 1 ? 's' : ''} en attente`}
+                      className="ml-auto flex items-center gap-1 rounded-full bg-vinci-rouge px-2 py-0.5 text-[11px] font-bold text-white shadow"
+                      title={`${badge} compte${badge > 1 ? 's' : ''} à valider`}
+                      aria-label={`${badge} compte${badge > 1 ? 's' : ''} à valider`}
                     >
-                      {badge}
+                      {badge} à valider
                     </span>
                   ) : null}
                 </Link>

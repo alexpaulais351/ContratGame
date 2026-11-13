@@ -21,12 +21,15 @@ export function AppShell({ children, utilisateur }: { children: React.ReactNode;
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-vinci-bleu-fonce hover:text-white lg:hidden"
+              className="relative text-white hover:bg-vinci-bleu-fonce hover:text-white lg:hidden"
               onClick={() => setMenuOuvert(true)}
               aria-label="Ouvrir le menu"
               aria-controls="navigation-principale"
             >
               <Menu className="h-5 w-5" />
+              {utilisateur.demandesEnAttente > 0 && (
+                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-vinci-rouge ring-2 ring-vinci-bleu" aria-hidden />
+              )}
             </Button>
           }
           droite={
