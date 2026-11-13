@@ -9,12 +9,11 @@ import { ByEbgc } from '@/components/layout/ByEbgc'
 
 export type UtilisateurShell = { nom: string; email: string; estAdmin: boolean; demandesEnAttente: number }
 
-type Lien = { href: string; label: string; icon: LucideIcon; badge?: number }
+type Lien = { href: string; label: string; icon: LucideIcon; badge?: number; sous?: Lien[] }
 
 const LIENS: Lien[] = [
   { href: '/accueil', label: 'Accueil', icon: Home },
-  { href: '/projets?nouveau=1', label: 'Nouveau projet', icon: PlusCircle },
-  { href: '/projets', label: 'Projets', icon: FolderOpen },
+  { href: '/projets', label: 'Projets', icon: FolderOpen, sous: [{ href: '/projets?nouveau=1', label: 'Nouveau projet', icon: PlusCircle }] },
   { href: '/boite-a-outils', label: 'Boîte à outils', icon: Wrench },
   { href: '/assurances', label: 'Assurances', icon: ShieldCheck },
 ]
@@ -60,31 +59,48 @@ export function Sidebar({ open, onClose, utilisateur }: Props) {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3" aria-label="Navigation principale">
-          {liens.map(({ href, label, icon: Icon, badge }) => {
+          {liens.map(({ href, label, icon: Icon, badge, sous }) => {
             const chemin = href.split('?')[0]
             const actif = href.includes('?') ? false : pathname === chemin || pathname.startsWith(chemin + '/')
             return (
-              <Link
-                key={href}
-                href={href}
-                onClick={onClose}
-                aria-current={actif ? 'page' : undefined}
-                className={cn(
-                  'flex items-center gap-3 border-l-4 px-4 py-3 text-sm transition-colors hover:bg-vinci-bleu-fonce',
-                  actif ? 'border-vinci-rouge bg-vinci-bleu-fonce font-semibold text-white' : 'border-transparent text-white/70 hover:text-white',
+              <div key={href}>
+                <Link
+                  href={href}
+                  onClick={onClose}
+                  aria-current={actif ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-3 border-l-4 px-4 py-3 text-sm transition-colors hover:bg-vinci-bleu-fonce',
+                    actif ? 'border-vinci-rouge bg-vinci-bleu-fonce font-semibold text-white' : 'border-transparent text-white/70 hover:text-white',
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  {label}
+                  {badge ? (
+                    <span
+                      className="ml-auto rounded-full bg-vinci-rouge px-2 py-0.5 text-xs font-bold text-white"
+                      aria-label={`${badge} demande${badge > 1 ? 's' : ''} en attente`}
+                    >
+                      {badge}
+                    </span>
+                  ) : null}
+                </Link>
+                {sous && (
+                  <ul className="mb-1" aria-label={`Sous-menu ${label}`}>
+                    {sous.map(({ href: h, label: l, icon: SousIcon }) => (
+                      <li key={h}>
+                        <Link
+                          href={h}
+                          onClick={onClose}
+                          className="ml-6 flex items-center gap-2.5 border-l border-white/25 py-2 pl-4 pr-4 text-[13px] text-white/70 transition-colors hover:bg-vinci-bleu-fonce hover:text-white"
+                        >
+                          <SousIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                          {l}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 )}
-              >
-                <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                {label}
-                {badge ? (
-                  <span
-                    className="ml-auto rounded-full bg-vinci-rouge px-2 py-0.5 text-xs font-bold text-white"
-                    aria-label={`${badge} demande${badge > 1 ? 's' : ''} en attente`}
-                  >
-                    {badge}
-                  </span>
-                ) : null}
-              </Link>
+              </div>
             )
           })}
         </nav>
