@@ -1,5 +1,5 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,6 +17,17 @@ export function NouveauProjet({ ouvertParDefaut = false }: { ouvertParDefaut?: b
   const [pending, start] = useTransition()
   const router = useRouter()
 
+  // Lien « Nouveau projet » du menu (/projets?nouveau=1) : ouvre la fenêtre même si l'on est déjà sur la page.
+  useEffect(() => {
+    if (ouvertParDefaut) setOpen(true)
+  }, [ouvertParDefaut])
+
+  function changerOuverture(o: boolean) {
+    setOpen(o)
+    // À la fermeture, retire le paramètre pour qu'un nouveau clic sur le lien rouvre la fenêtre.
+    if (!o && ouvertParDefaut) router.replace('/projets')
+  }
+
   function valider() {
     start(async () => {
       const res = await creerProjet({ name, description })
@@ -27,7 +38,7 @@ export function NouveauProjet({ ouvertParDefaut = false }: { ouvertParDefaut?: b
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={changerOuverture}>
       <DialogTrigger asChild>
         <Button>
           <Plus /> Nouveau projet
