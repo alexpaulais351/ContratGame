@@ -27,7 +27,7 @@ export function AppShell({ children, utilisateur }: { children: React.ReactNode;
               aria-controls="navigation-principale"
             >
               <Menu className="h-5 w-5" />
-              {utilisateur.demandesEnAttente > 0 && (
+              {utilisateur.demandesEnAttente + (utilisateur.ticketsNouveaux ?? 0) > 0 && (
                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-vinci-rouge ring-2 ring-vinci-bleu" aria-hidden />
               )}
             </Button>

@@ -89,6 +89,7 @@ const PAGES_FIXES: Record<string, string> = {
   '/profil': 'Profil',
   '/comptes': 'Comptes',
   '/analyse': 'Analyse',
+  '/tickets': 'Tickets',
   '/modeles-courriers': 'Modèles de courriers (ancienne URL)',
   '/boite-a-outils': 'Boîte à outils',
   '/boite-a-outils/modeles-courriers': 'Boîte à outils · Modèles de courriers',
