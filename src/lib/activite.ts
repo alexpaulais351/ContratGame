@@ -95,7 +95,8 @@ const PAGES_FIXES: Record<string, string> = {
   '/boite-a-outils/procedure-dgd': 'Boîte à outils · Procédure DGD',
   '/boite-a-outils/delais-cles': 'Boîte à outils · Délais clés',
   '/boite-a-outils/calculateurs': 'Boîte à outils · Calculateurs',
-  '/boite-a-outils/assurances': 'Boîte à outils · Assurances',
+  '/boite-a-outils/assurances': 'Assurances',
+  '/assurances': 'Assurances',
   '/boite-a-outils/lexique': 'Boîte à outils · Lexique',
 }
 

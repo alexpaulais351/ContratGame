@@ -1,13 +1,6 @@
-import { AssurancesClient } from '@/components/modules/boite-a-outils/AssurancesClient'
-import { EncadreSources } from '@/components/modules/boite-a-outils/EncadreSources'
+import { redirect } from 'next/navigation'
 
-export const metadata = { title: 'Assurances — Boîte à outils' }
-
+/** Ancienne adresse : l'outil Assurances est désormais un onglet à part entière. */
 export default function Page() {
-  return (
-    <>
-      <AssurancesClient />
-      <EncadreSources outil="assurances" />
-    </>
-  )
+  redirect('/assurances')
 }
