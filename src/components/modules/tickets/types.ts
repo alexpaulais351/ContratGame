@@ -8,6 +8,7 @@ export const CATEGORIES_TICKET = [
   { value: 'export', label: 'Export (PDF, Excel, Word)', couleur: 'violet' },
   { value: 'affichage', label: 'Affichage / ergonomie', couleur: 'bleuCiel' },
   { value: 'donnees', label: 'Données / projet', couleur: 'vert' },
+  { value: 'abaque', label: 'Intégration d’abaque', couleur: 'jaune' },
   { value: 'autre', label: 'Autre', couleur: 'grisChaud' },
 ] as const satisfies readonly Option[]
 
@@ -23,6 +24,9 @@ export const STATUTS_TICKET = [
   { value: 'resolu', label: 'Résolu', couleur: 'vert' },
   { value: 'refuse', label: 'Refusé', couleur: 'grisChaud' },
 ] as const satisfies readonly Option[]
+
+/** Adresse à laquelle envoyer les fichiers d'abaques (le ticket reste à ouvrir). */
+export const EMAIL_ABAQUES = 'alexandre.paulais@vinci-construction.com'
 
 export type TicketDTO = {
   id: string

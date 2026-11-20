@@ -423,7 +423,7 @@ model Ticket {
   auteurId    String
   titre       String
   description String   @db.Text
-  /// 'amelioration' | 'anomalie' | 'export' | 'affichage' | 'donnees' | 'autre'
+  /// 'amelioration' | 'anomalie' | 'export' | 'affichage' | 'donnees' | 'abaque' | 'autre'
   categorie   String   @default("amelioration")
   /// 'basse' | 'normale' | 'haute'
   priorite    String   @default("normale")

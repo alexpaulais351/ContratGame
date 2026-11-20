@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronUp, Inbox, MessageSquareReply, Plus, Send, Trash2 } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Mail, ChevronUp, Inbox, MessageSquareReply, Plus, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { VINCI, VINCI_SECONDAIRE } from '@/lib/design-tokens'
 import { cn, formatDateFR } from '@/lib/utils'
 import { creerTicket, supprimerTicket, traiterTicket } from '@/actions/tickets'
-import { CATEGORIES_TICKET, PRIORITES_TICKET, STATUTS_TICKET, optionDe, type TicketDTO } from './types'
+import { CATEGORIES_TICKET, EMAIL_ABAQUES, PRIORITES_TICKET, STATUTS_TICKET, optionDe, type TicketDTO } from './types'
 
 const SELECT = 'h-10 w-full rounded-md border border-vinci-gris-bordure bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-vinci-bleu'
 
@@ -27,6 +27,25 @@ function Pastille({ couleur, children }: { couleur: string; children: React.Reac
     <span className="inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-bold" style={{ backgroundColor: c.bg, borderColor: c.bd, color: VINCI.noir }}>
       {children}
     </span>
+  )
+}
+
+function EncartAbaque({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="flex gap-3 rounded-md border-l-4 border-vinci-jaune bg-vinci-jaune-clair p-3 text-sm" role="note">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-vinci-orange" aria-hidden />
+      <div>
+        <p className="font-bold">Intégration d’abaque : envoyez aussi le fichier par e-mail</p>
+        <p className="mt-0.5">
+          Envoyez l’abaque (Excel, PDF, tableau…) par e-mail à{' '}
+          <a href={`mailto:${EMAIL_ABAQUES}?subject=${encodeURIComponent('Contrat Game – intégration d’abaque')}`} className="inline-flex items-center gap-1 font-semibold text-vinci-bleu underline">
+            <Mail className="h-3.5 w-3.5" aria-hidden />
+            {EMAIL_ABAQUES}
+          </a>{' '}
+          <strong>et ouvrez quand même le ticket</strong>{compact ? '.' : ' (catégorie « Intégration d’abaque ») pour suivre la demande.'}
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -77,6 +96,7 @@ function NouveauTicket({ open, onOpenChange }: { open: boolean; onOpenChange: (o
               </select>
             </div>
           </div>
+          {f.categorie === 'abaque' && <EncartAbaque />}
           <div className="space-y-1">
             <Label htmlFor="t-page">Page ou module concerné (facultatif)</Label>
             <Input id="t-page" value={f.page} onChange={maj('page')} placeholder="Ex. : Situations, export PDF" />
@@ -203,6 +223,8 @@ export function TicketsClient({ tickets, estAdmin }: { tickets: TicketDTO[]; est
           <Plus /> Nouvelle demande
         </Button>
       </div>
+
+      {!estAdmin && <EncartAbaque />}
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer les tickets">
         {filtres.map((f) => (
